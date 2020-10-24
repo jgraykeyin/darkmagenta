@@ -26,9 +26,13 @@ clock = pygame.time.Clock()
 # Load in sprites
 player = pygame.image.load(os.path.join(__location__,'magenta_start.png'))
 player_walk = pygame.image.load(os.path.join(__location__,'magenta_walk.png'))
+coolcat1 = pygame.image.load(os.path.join(__location__,'cat1.png'))
+coolcat2 = pygame.image.load(os.path.join(__location__,'cat2.png'))
 grass1 = pygame.image.load(os.path.join(__location__,'grass1.png'))
 grass2 = pygame.image.load(os.path.join(__location__,'grass2.png'))
 mushroom1 = pygame.image.load(os.path.join(__location__,'mush1.png'))
+pond1 = pygame.image.load(os.path.join(__location__,'pond1.png'))
+pond2 = pygame.image.load(os.path.join(__location__,'pond2.png'))
 
 # Load in sound effects
 walk_sound = pygame.mixer.Sound(os.path.join(__location__,'sound_walk.wav'))
@@ -53,6 +57,12 @@ def draw_player(x,y,walk):
     else:
         game_display.blit(player,(x,y))
 
+def draw_pond(x,y,wind):
+    if wind == 1:
+        game_display.blit(pond1,(x,y))
+    else:
+        game_display.blit(pond2,(x,y))  
+
 def draw_grass(x,y,wind):
     if wind == 1:
         game_display.blit(grass2,(x,y))
@@ -62,12 +72,18 @@ def draw_grass(x,y,wind):
 def draw_mushroom(x,y):
     game_display.blit(mushroom1,(x,y))
 
+def draw_cat(x,y,wind):
+    if wind == 1:
+        game_display.blit(coolcat1, (x,y))
+    else:
+        game_display.blit(coolcat2, (x,y))
+
 def generate_terrain():
     # Blank tile = 0
     # Grass tile = 1
     # Mushroom #1 = 2
-    # Mushroom #2 = 3
-    # Mushroom #3 = 4
+    # Pond = 3
+
     terrain_tiles=[]
     row_list = []
     
@@ -83,11 +99,18 @@ def generate_terrain():
             mush_roll = random.randint(0,10)
             if mush_roll > 8:
                 row_list.append(2)
+            else:
+                pond_roll = random.randint(0,20)
+                if pond_roll > 19:
+                    row_list.append(3)
 
             i+=1
         terrain_tiles.append(row_list)
         row_list=[]
         col+=1
+        # Hack to keep the first two tiles clear
+    terrain_tiles[0][0] = 0
+    terrain_tiles[1][0] = 0
 
     return terrain_tiles
 
@@ -101,15 +124,16 @@ def place_generated_tiles(terrain_tiles,wind):
                 elif cell == 2:
                     draw_grass(c,r,wind)
                     draw_mushroom(c,r)
-                    pass
+                elif cell == 3:
+                    draw_pond(c,r,wind)
                 r+=96
             c+=96
             r=0    
 
 def game_loop():
 
-    x = 64
-    y = 64
+    x = 0
+    y = 0
     x_change = 0
     y_change = 0
     walked=0
@@ -156,13 +180,15 @@ def game_loop():
 
         dt = clock.tick()
         time_passed += dt
-        if time_passed > 30 and time_passed < 60:
+        if time_passed >= 30 and time_passed < 60:
             wind=1
         elif time_passed >= 60:
             wind=0
             time_passed = 0
 
+        # Draw sprites onto surface
         place_generated_tiles(terrain_tiles,wind)
+        draw_cat(96,0,wind)
         draw_player(x,y,walked)
 
         pygame.display.update()
