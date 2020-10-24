@@ -30,6 +30,20 @@ grass1 = pygame.image.load(os.path.join(__location__,'grass1.png'))
 grass2 = pygame.image.load(os.path.join(__location__,'grass2.png'))
 mushroom1 = pygame.image.load(os.path.join(__location__,'mush1.png'))
 
+# Load in sound effects
+walk_sound = pygame.mixer.Sound(os.path.join(__location__,'sound_walk.wav'))
+walk_sound.set_volume(0.5)
+
+# Play a little song to start the level
+intro_tune = pygame.mixer.Sound(os.path.join(__location__,'bgmusic1.mp3'))
+intro_tune.set_volume(0.4)
+intro_tune.play(0,0,8000)
+
+# Repeat ambient background sounds
+pygame.mixer.music.load(os.path.join(__location__, "forestsounds.mp3"))
+pygame.mixer.music.set_volume(0.6)
+pygame.mixer.music.play(-1,8000)
+
 player_size = 96
 grass_size = 96
 
@@ -124,6 +138,7 @@ def game_loop():
                     y_change = 10
 
                 walked=1
+                walk_sound.play()
 
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT:
