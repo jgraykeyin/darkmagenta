@@ -19,12 +19,15 @@ display_height = 672
 
 game_display = pygame.display.set_mode((display_width,display_height))
 pygame.display.set_caption('Dark Magenta')
+
+time_passed = 0
 clock = pygame.time.Clock()
 
 # Load in sprites
 player = pygame.image.load(os.path.join(__location__,'magenta_start.png'))
 player_walk = pygame.image.load(os.path.join(__location__,'magenta_walk.png'))
-grass = pygame.image.load(os.path.join(__location__,'grass1.png'))
+grass1 = pygame.image.load(os.path.join(__location__,'grass1.png'))
+grass2 = pygame.image.load(os.path.join(__location__,'grass2.png'))
 mushroom1 = pygame.image.load(os.path.join(__location__,'mush1.png'))
 
 player_size = 96
@@ -36,8 +39,11 @@ def draw_player(x,y,walk):
     else:
         game_display.blit(player,(x,y))
 
-def draw_grass(x,y):
-    game_display.blit(grass,(x,y))
+def draw_grass(x,y,wind):
+    if wind == 1:
+        game_display.blit(grass2,(x,y))
+    else:
+        game_display.blit(grass1,(x,y))
 
 def draw_mushroom(x,y):
     game_display.blit(mushroom1,(x,y))
@@ -71,15 +77,15 @@ def generate_terrain():
 
     return terrain_tiles
 
-def place_generated_tiles(terrain_tiles):
+def place_generated_tiles(terrain_tiles,wind):
         c=0
         r=0
         for row in terrain_tiles:
             for cell in row:
                 if cell == 1:
-                    draw_grass(c,r)
+                    draw_grass(c,r,wind)
                 elif cell == 2:
-                    draw_grass(c,r)
+                    draw_grass(c,r,wind)
                     draw_mushroom(c,r)
                     pass
                 r+=96
@@ -93,6 +99,8 @@ def game_loop():
     x_change = 0
     y_change = 0
     walked=0
+    wind=0
+    time_passed = 0
     
     terrain_tiles = generate_terrain()
 
@@ -131,10 +139,19 @@ def game_loop():
 
         game_display.fill(dark_cyan)
 
-        place_generated_tiles(terrain_tiles)
+        dt = clock.tick()
+        time_passed += dt
+        if time_passed > 30 and time_passed < 60:
+            wind=1
+        elif time_passed >= 60:
+            wind=0
+            time_passed = 0
+
+        place_generated_tiles(terrain_tiles,wind)
         draw_player(x,y,walked)
 
         pygame.display.update()
+
         clock.tick(60)
 
 game_loop()
