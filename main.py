@@ -1,6 +1,7 @@
 import pygame
 import os
 import random
+import math
 
 pygame.init()
 
@@ -20,7 +21,7 @@ display_height = 7
 step=24
 
 # Setup the main game display
-game_display = pygame.display.set_mode((display_width*tile_size,display_height*tile_size))
+game_display = pygame.display.set_mode((display_width*tile_size,display_height*tile_size+50))
 pygame.display.set_caption('Dark Magenta')
 
 # Initialize the game clock
@@ -28,6 +29,11 @@ clock = pygame.time.Clock()
 
 # Load character sprite
 player = pygame.image.load(os.path.join(__location__,'magenta_start.png'))
+player_walk = pygame.image.load(os.path.join(__location__,'magenta_walk.png'))
+
+# Load in sound effects
+walk_sound = pygame.mixer.Sound(os.path.join(__location__,'sound_walk.wav'))
+walk_sound.set_volume(0.5)
 
 # Setup tile types
 blank_tile = 0
@@ -42,6 +48,16 @@ tile_textures = {
     grass2_tile: pygame.image.load(os.path.join(__location__,'grass2.png')),
     mush1_tile: pygame.image.load(os.path.join(__location__,'mush1.png')),
     mush2_tile: pygame.image.load(os.path.join(__location__,'mush2.png')),
+}
+
+# Setup collectable resources
+resources = [mush1_tile,mush2_tile]
+
+# Initialize inventory
+inventory_font = pygame.font.Font(os.path.join(__location__,'PressStart2P-Regular.ttf'),18)
+inventory = {
+    mush1_tile:0,
+    mush2_tile:0
 }
 
 # Create a full map of blank tiles
@@ -74,17 +90,33 @@ def game_loop():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 quit()
+
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_RIGHT and player_pos[0] < ((display_width * tile_size) - tile_size):
                     player_pos[0] += step
+                    walk_sound.play()
                 elif event.key == pygame.K_LEFT and player_pos[0] > 0:
                     player_pos[0] -= step
+                    walk_sound.play()
                 elif event.key == pygame.K_UP and player_pos[1] > 0:
                     player_pos[1] -= step
+                    walk_sound.play()
                 elif event.key == pygame.K_DOWN and player_pos[1] < ((display_height * tile_size) - tile_size):
                     player_pos[1] += step
-            
-
+                    walk_sound.play()
+                if event.key == pygame.K_SPACE:
+                    # Pick-up mushroom if it's available on current tile
+                    py = math.floor(player_pos[1]/tile_size)
+                    px = math.floor(player_pos[0]/tile_size)
+                    current_tile = tile_map[py][px]
+                    if current_tile == 3 or current_tile == 4:
+                        # Add mushroom to inventory
+                        inventory[current_tile] += 1
+                        # Replace with blank tile
+                        tile_map[py][px] = blank_tile
+                    else:
+                        pass
+                    
         # Paint the screen with background color
         game_display.fill(dark_cyan)
 
