@@ -4,231 +4,59 @@ import random
 
 pygame.init()
 
-__location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
-
+# Color palette
 light_cyan = (85,255,255)
 dark_cyan = (0,170,170)
 dark_green = (0,170,0)
 light_green = (85,255,85)
 
-display_width = 864
-display_height = 672
+# Set file location to current directory
+__location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
-game_display = pygame.display.set_mode((display_width,display_height))
+# Tile and display sizes
+tile_size = 96
+display_width = 9
+display_height = 7
+step=24
+
+# Setup the main game display
+game_display = pygame.display.set_mode((display_width*tile_size,display_height*tile_size))
 pygame.display.set_caption('Dark Magenta')
 
-time_passed = 0
+# Initialize the game clock
 clock = pygame.time.Clock()
 
-# Load in sprites
+# Load character sprite
 player = pygame.image.load(os.path.join(__location__,'magenta_start.png'))
-player_walk = pygame.image.load(os.path.join(__location__,'magenta_walk.png'))
-coolcat1 = pygame.image.load(os.path.join(__location__,'cat1.png'))
-coolcat2 = pygame.image.load(os.path.join(__location__,'cat2.png'))
-grass1 = pygame.image.load(os.path.join(__location__,'grass1.png'))
-grass2 = pygame.image.load(os.path.join(__location__,'grass2.png'))
-mushroom1 = pygame.image.load(os.path.join(__location__,'mush1.png'))
-mushroom2 = pygame.image.load(os.path.join(__location__,'mush2.png'))
-pond1 = pygame.image.load(os.path.join(__location__,'pond1.png'))
-pond2 = pygame.image.load(os.path.join(__location__,'pond2.png'))
 
-# Load in sound effects
-walk_sound = pygame.mixer.Sound(os.path.join(__location__,'sound_walk.wav'))
-walk_sound.set_volume(0.5)
-
-# Play a little song to start the level
-intro_tune = pygame.mixer.Sound(os.path.join(__location__,'bgmusic1.mp3'))
-intro_tune.set_volume(0.4)
-intro_tune.play(0,0,8000)
-
-# Repeat ambient background sounds
-pygame.mixer.music.load(os.path.join(__location__, "forestsounds.mp3"))
-pygame.mixer.music.set_volume(0.6)
-pygame.mixer.music.play(-1,8000)
-
-player_size = 96
-grass_size = 96
-ponds=[]
-
-def draw_player(x,y,walk):
-    if walk == 1:
-        game_display.blit(player_walk,(x,y))
-    else:
-        game_display.blit(player,(x,y))
-
-def draw_pond(x,y,wind):
-    if wind == 1:
-        game_display.blit(pond1,(x,y))
-    else:
-        game_display.blit(pond2,(x,y))
-
-def draw_grass(x,y,wind):
-    if wind == 1:
-        game_display.blit(grass2,(x,y))
-    else:
-        game_display.blit(grass1,(x,y))
-
-def draw_mushroom(x,y,mushtype):
-    if mushtype == 2:
-        game_display.blit(mushroom1,(x,y))
-    elif mushtype == 4:
-        game_display.blit(mushroom2, (x,y))
-
-def draw_cat(x,y,wind):
-    if wind == 1:
-        game_display.blit(coolcat1, (x,y))
-    else:
-        game_display.blit(coolcat2, (x,y))
-
-
-def generate_terrain():
-    # 0 BLANK TILE
-    # 1 GRASS TILE 
-    # 2 MUSHROOM 1
-    # 3 POND
-    # 4 MUSHROOM 2
-
-    terrain_tiles=[]
-    row_list = []
-    
-    col=0
-    while col < 9:
-        i=0
-        while i < 7:
-            # Grass tile roll
-            grass_roll = random.randint(0,1)
-            row_list.append(grass_roll)
-
-            # Mushroom tile roll
-            mush_roll = random.randint(0,10)
-            if mush_roll > 8:
-                mushtype = random.randint(0,1)
-                if mushtype == 0:
-                    row_list.append(2)
-                elif mushtype == 1:
-                    row_list.append(4)
-            else:
-                pass
-                # Pond tile roll
-                #pond_roll = random.randint(0,20)
-                #if pond_roll > 19:
-                #    row_list.append(3)
-                #    ponds.append({"y":(i*96)+96,"x":col*96})
-            i+=1
-        terrain_tiles.append(row_list)
-        row_list=[]
-        col+=1
-        # Hack to keep the first two tiles clear
-    terrain_tiles[0][0] = 0
-    terrain_tiles[1][0] = 0
-    terrain_tiles[0][4] = 3
-    ponds.append({"x":0,"y":4*96})
-
-    return terrain_tiles
-
-def place_generated_tiles(terrain_tiles,wind):
-        c=0
-        r=0
-        for row in terrain_tiles:
-            for cell in row:
-                if cell == 1:
-                    draw_grass(c,r,wind)
-                elif cell == 2:
-                    draw_grass(c,r,wind)
-                    draw_mushroom(c,r,2)
-                elif cell == 3:
-                    draw_pond(c,r,wind)
-                elif cell == 4:
-                    draw_grass(c,r,wind)
-                    draw_mushroom(c,r,4)
-                r+=96
-            c+=96
-            r=0    
-
+# Setup the main game loop
 def game_loop():
-
-    x = 0
-    y = 0
-    x_change = 0
-    y_change = 0
-    walked=0
-    wind=0
-    time_passed = 0
-    step = 24
-    
-    terrain_tiles = generate_terrain()
+    player_pos = [0,1]
 
     game_exit = False
 
     while not game_exit:
-
+        # Check for quit event
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 quit()
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RIGHT:
+                    player_pos[0] += step
+                elif event.key == pygame.K_LEFT:
+                    player_pos[0] -= step
 
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_LEFT:
-                    x_change = -step
-                elif event.key == pygame.K_RIGHT:
-                    x_change = step
-                if event.key == pygame.K_UP:
-                    y_change = -step
-
-                elif event.key == pygame.K_DOWN:
-                    y_change = step
-
-                    for pond in ponds:
-                        if y > pond["y"] - player_size and y < pond["y"] + player_size:
-                            #print("y crossover")
-                            if x > pond["x"] - player_size and x < pond["x"] + player_size:
-                                y_change = pond["y"] - (y + step*2)
-
-                walked=1
-                walk_sound.play()
-
-            if event.type == pygame.KEYUP:
-                if event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT:
-                    x_change = 0
-                elif event.key == pygame.K_UP or event.key == pygame.K_DOWN:
-                    y_change = 0
-                walked=0
-
-            # Invisible walls for screen boundaries
-            if x < 0:
-                x = 0
-            if x > display_width - player_size:
-                x = display_width - player_size
-            if y < 0:
-                y = 0
-            if y > display_height - player_size:
-                y = display_height - player_size
-
-            # Apply X and Y movement to the player
-            x+=x_change
-            y+=y_change
-
+        # Paint the screen with background color
         game_display.fill(dark_cyan)
 
-        dt = clock.tick()
-        time_passed += dt
-        if time_passed >= 30 and time_passed < 60:
-            wind=1
-        elif time_passed >= 60:
-            wind=0
-            time_passed = 0
+        # Draw the player character
+        game_display.blit(player,(player_pos[0],player_pos[1]))
 
-        # Draw sprites onto surface
-        place_generated_tiles(terrain_tiles,wind)
-        draw_cat(player_size,0,wind)
-        draw_player(x,y,walked)
-        print("x:{},y:{}".format(x,y))
-        print(ponds)
+        # Update the screen
         pygame.display.update()
-
         clock.tick(60)
 
 game_loop()
 pygame.quit()
 quit()
-
