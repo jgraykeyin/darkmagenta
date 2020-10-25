@@ -35,22 +35,31 @@ player_walk = pygame.image.load(os.path.join(__location__,'magenta_walk.png'))
 walk_sound = pygame.mixer.Sound(os.path.join(__location__,'sound_walk.wav'))
 walk_sound.set_volume(0.5)
 get_item_sound = pygame.mixer.Sound(os.path.join(__location__,'get_item.wav'))
-get_item_sound.set_volume(0.5)
+get_item_sound.set_volume(0.4)
+
+# Repeat ambient background sounds
+pygame.mixer.music.load(os.path.join(__location__, "forestsounds.mp3"))
+pygame.mixer.music.set_volume(0.7)
+pygame.mixer.music.play(-1,8000)
 
 # Setup tile types
 blank_tile = 0
 grass1_tile = 1
-grass2_tile = 2
+water_tile = 2
 mush1_tile = 3
 mush2_tile = 4
 
 tile_textures = {
     blank_tile: pygame.image.load(os.path.join(__location__,'blank_tile.png')),
     grass1_tile: pygame.image.load(os.path.join(__location__,'grass1.png')),
-    grass2_tile: pygame.image.load(os.path.join(__location__,'grass2.png')),
+    water_tile: pygame.image.load(os.path.join(__location__,'pond1.png')),
     mush1_tile: pygame.image.load(os.path.join(__location__,'mush1.png')),
     mush2_tile: pygame.image.load(os.path.join(__location__,'mush2.png')),
 }
+
+# Frames for animation
+water2_tile =  pygame.image.load(os.path.join(__location__,'pond2.png'))
+grass2_tile = pygame.image.load(os.path.join(__location__,'grass2.png'))
 
 # Setup collectable resources
 resources = [mush1_tile,mush2_tile]
@@ -71,8 +80,10 @@ for row in range(display_height):
         num = random.randint(0,15)
         if num == 0:
             tile = blank_tile
-        elif num in [1,2,3,4,5,6,7,8,9]:
+        elif num in [1,2,3,4,5,6,7,8]:
             tile = grass1_tile
+        elif num == 9:
+            tile = water_tile
         elif num in [10,11,12]:
             tile = mush1_tile
         elif num in [13,14,15]:
@@ -83,7 +94,9 @@ for row in range(display_height):
 # Setup the main game loop
 def game_loop():
     player_pos = [0,1]
-
+    frame_count = 0
+    wind=0
+    walk=0
     game_exit = False
 
     while not game_exit:
@@ -97,15 +110,19 @@ def game_loop():
                 if event.key == pygame.K_RIGHT and player_pos[0] < ((display_width * tile_size) - tile_size):
                     player_pos[0] += step
                     walk_sound.play()
+                    walk=1
                 elif event.key == pygame.K_LEFT and player_pos[0] > 0:
                     player_pos[0] -= step
                     walk_sound.play()
+                    walk=1
                 elif event.key == pygame.K_UP and player_pos[1] > 0:
                     player_pos[1] -= step
                     walk_sound.play()
+                    walk=1
                 elif event.key == pygame.K_DOWN and player_pos[1] < ((display_height * tile_size) - tile_size):
                     player_pos[1] += step
                     walk_sound.play()
+                    walk=1
                 if event.key == pygame.K_SPACE:
                     # Pick-up mushroom if it's available on current tile
                     py = math.floor(player_pos[1]/tile_size)
@@ -117,21 +134,51 @@ def game_loop():
                         # Replace with blank tile
                         tile_map[py][px] = blank_tile
                         get_item_sound.play()
+
+            # Reset the walking flag for proper walk animation
+            if event.type == pygame.KEYUP:
+                if event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT:
+                    walk=0
+                elif event.key == pygame.K_UP or event.key == pygame.K_DOWN:
+                    walk=0
                     
         # Paint the screen with background color
         game_display.fill(dark_cyan)
 
+        # Increment the frame counter used to animate water
+        frame_count+=1
+        # Generate wind-change for grass
+        wind_roll = random.randint(0,40)
+        if wind_roll > 39:
+            wind = 1
+
         # Draw the map
         for row in range(display_height):
             for column in range(display_width):
-                game_display.blit(tile_textures[tile_map[row][column]],(column*tile_size,row*tile_size))
+                    # Check for ponds, they must be animated
+                    if tile_map[row][column] == 2 and frame_count <= 50:
+                        game_display.blit(tile_textures[tile_map[row][column]],(column*tile_size,row*tile_size))
+                    elif tile_map[row][column] == 2 and frame_count > 50:
+                        game_display.blit(water2_tile,(column*tile_size,row*tile_size))
+                    elif tile_map[row][column] == 1 and wind == 1:
+                        game_display.blit(grass2_tile,(column*tile_size,row*tile_size))
+                    else:
+                        game_display.blit(tile_textures[tile_map[row][column]],(column*tile_size,row*tile_size))
 
         # Draw the player character
-        game_display.blit(player,(player_pos[0],player_pos[1]))
+        if walk == 0:
+            game_display.blit(player,(player_pos[0],player_pos[1]))
+        elif walk == 1:
+            game_display.blit(player_walk,(player_pos[0],player_pos[1]))
 
         # Update the screen
         pygame.display.update()
         clock.tick(60)
+        if frame_count > 100:
+            frame_count = 0
+        wind_roll = random.randint(0,40)
+        if wind_roll > 39:
+            wind = 0
 
 game_loop()
 pygame.quit()
