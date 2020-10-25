@@ -34,6 +34,8 @@ player_walk = pygame.image.load(os.path.join(__location__,'magenta_walk.png'))
 # Load in sound effects
 walk_sound = pygame.mixer.Sound(os.path.join(__location__,'sound_walk.wav'))
 walk_sound.set_volume(0.5)
+get_item_sound = pygame.mixer.Sound(os.path.join(__location__,'get_item.wav'))
+get_item_sound.set_volume(0.5)
 
 # Setup tile types
 blank_tile = 0
@@ -114,8 +116,7 @@ def game_loop():
                         inventory[current_tile] += 1
                         # Replace with blank tile
                         tile_map[py][px] = blank_tile
-                    else:
-                        pass
+                        get_item_sound.play()
                     
         # Paint the screen with background color
         game_display.fill(dark_cyan)
