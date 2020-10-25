@@ -6,9 +6,6 @@ pygame.init()
 
 __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
-#TILESIZE = 32
-#MAPWIDTH = 30
-#MAPHEIGHT = 20
 light_cyan = (85,255,255)
 dark_cyan = (0,170,170)
 dark_green = (0,170,0)
@@ -31,6 +28,7 @@ coolcat2 = pygame.image.load(os.path.join(__location__,'cat2.png'))
 grass1 = pygame.image.load(os.path.join(__location__,'grass1.png'))
 grass2 = pygame.image.load(os.path.join(__location__,'grass2.png'))
 mushroom1 = pygame.image.load(os.path.join(__location__,'mush1.png'))
+mushroom2 = pygame.image.load(os.path.join(__location__,'mush2.png'))
 pond1 = pygame.image.load(os.path.join(__location__,'pond1.png'))
 pond2 = pygame.image.load(os.path.join(__location__,'pond2.png'))
 
@@ -50,6 +48,7 @@ pygame.mixer.music.play(-1,8000)
 
 player_size = 96
 grass_size = 96
+ponds=[]
 
 def draw_player(x,y,walk):
     if walk == 1:
@@ -61,7 +60,7 @@ def draw_pond(x,y,wind):
     if wind == 1:
         game_display.blit(pond1,(x,y))
     else:
-        game_display.blit(pond2,(x,y))  
+        game_display.blit(pond2,(x,y))
 
 def draw_grass(x,y,wind):
     if wind == 1:
@@ -69,8 +68,11 @@ def draw_grass(x,y,wind):
     else:
         game_display.blit(grass1,(x,y))
 
-def draw_mushroom(x,y):
-    game_display.blit(mushroom1,(x,y))
+def draw_mushroom(x,y,mushtype):
+    if mushtype == 2:
+        game_display.blit(mushroom1,(x,y))
+    elif mushtype == 4:
+        game_display.blit(mushroom2, (x,y))
 
 def draw_cat(x,y,wind):
     if wind == 1:
@@ -78,11 +80,13 @@ def draw_cat(x,y,wind):
     else:
         game_display.blit(coolcat2, (x,y))
 
+
 def generate_terrain():
-    # Blank tile = 0
-    # Grass tile = 1
-    # Mushroom #1 = 2
-    # Pond = 3
+    # 0 BLANK TILE
+    # 1 GRASS TILE 
+    # 2 MUSHROOM 1
+    # 3 POND
+    # 4 MUSHROOM 2
 
     terrain_tiles=[]
     row_list = []
@@ -98,12 +102,18 @@ def generate_terrain():
             # Mushroom tile roll
             mush_roll = random.randint(0,10)
             if mush_roll > 8:
-                row_list.append(2)
+                mushtype = random.randint(0,1)
+                if mushtype == 0:
+                    row_list.append(2)
+                elif mushtype == 1:
+                    row_list.append(4)
             else:
-                pond_roll = random.randint(0,20)
-                if pond_roll > 19:
-                    row_list.append(3)
-
+                pass
+                # Pond tile roll
+                #pond_roll = random.randint(0,20)
+                #if pond_roll > 19:
+                #    row_list.append(3)
+                #    ponds.append({"y":(i*96)+96,"x":col*96})
             i+=1
         terrain_tiles.append(row_list)
         row_list=[]
@@ -111,6 +121,8 @@ def generate_terrain():
         # Hack to keep the first two tiles clear
     terrain_tiles[0][0] = 0
     terrain_tiles[1][0] = 0
+    terrain_tiles[0][4] = 3
+    ponds.append({"x":0,"y":4*96})
 
     return terrain_tiles
 
@@ -123,9 +135,12 @@ def place_generated_tiles(terrain_tiles,wind):
                     draw_grass(c,r,wind)
                 elif cell == 2:
                     draw_grass(c,r,wind)
-                    draw_mushroom(c,r)
+                    draw_mushroom(c,r,2)
                 elif cell == 3:
                     draw_pond(c,r,wind)
+                elif cell == 4:
+                    draw_grass(c,r,wind)
+                    draw_mushroom(c,r,4)
                 r+=96
             c+=96
             r=0    
@@ -139,6 +154,7 @@ def game_loop():
     walked=0
     wind=0
     time_passed = 0
+    step = 24
     
     terrain_tiles = generate_terrain()
 
@@ -153,13 +169,20 @@ def game_loop():
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT:
-                    x_change = -10
+                    x_change = -step
                 elif event.key == pygame.K_RIGHT:
-                    x_change = 10
+                    x_change = step
                 if event.key == pygame.K_UP:
-                    y_change = -10
+                    y_change = -step
+
                 elif event.key == pygame.K_DOWN:
-                    y_change = 10
+                    y_change = step
+
+                    for pond in ponds:
+                        if y > pond["y"] - player_size and y < pond["y"] + player_size:
+                            #print("y crossover")
+                            if x > pond["x"] - player_size and x < pond["x"] + player_size:
+                                y_change = pond["y"] - (y + step*2)
 
                 walked=1
                 walk_sound.play()
@@ -169,8 +192,17 @@ def game_loop():
                     x_change = 0
                 elif event.key == pygame.K_UP or event.key == pygame.K_DOWN:
                     y_change = 0
-
                 walked=0
+
+            # Invisible walls for screen boundaries
+            if x < 0:
+                x = 0
+            if x > display_width - player_size:
+                x = display_width - player_size
+            if y < 0:
+                y = 0
+            if y > display_height - player_size:
+                y = display_height - player_size
 
             # Apply X and Y movement to the player
             x+=x_change
@@ -188,9 +220,10 @@ def game_loop():
 
         # Draw sprites onto surface
         place_generated_tiles(terrain_tiles,wind)
-        draw_cat(96,0,wind)
+        draw_cat(player_size,0,wind)
         draw_player(x,y,walked)
-
+        print("x:{},y:{}".format(x,y))
+        print(ponds)
         pygame.display.update()
 
         clock.tick(60)
@@ -198,3 +231,4 @@ def game_loop():
 game_loop()
 pygame.quit()
 quit()
+
