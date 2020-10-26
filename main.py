@@ -29,7 +29,12 @@ clock = pygame.time.Clock()
 
 # Load character sprite
 player = pygame.image.load(os.path.join(__location__,'magenta_start.png'))
+player_flip = pygame.transform.flip(player,1,0)
 player_walk = pygame.image.load(os.path.join(__location__,'magenta_walk.png'))
+player_walk_flip = pygame.transform.flip(player_walk,1,0)
+# Load the cat sprite
+cat1 = pygame.image.load(os.path.join(__location__,'cat1.png'))
+cat2 = pygame.image.load(os.path.join(__location__,'cat2.png'))
 
 # Load in sound effects
 walk_sound = pygame.mixer.Sound(os.path.join(__location__,'sound_walk.wav'))
@@ -97,6 +102,7 @@ def game_loop():
     frame_count = 0
     wind=0
     walk=0
+    direction=0
     game_exit = False
 
     while not game_exit:
@@ -107,14 +113,19 @@ def game_loop():
                 quit()
 
             elif event.type == pygame.KEYDOWN:
+                # Trying to use this to stop player from walking into water
+                current_tile = tile_map[math.floor(player_pos[1]/tile_size)][math.floor(player_pos[0]/tile_size)]
+
                 if event.key == pygame.K_RIGHT and player_pos[0] < ((display_width * tile_size) - tile_size):
                     player_pos[0] += step
                     walk_sound.play()
                     walk=1
+                    direction=0
                 elif event.key == pygame.K_LEFT and player_pos[0] > 0:
                     player_pos[0] -= step
                     walk_sound.play()
                     walk=1
+                    direction=1
                 elif event.key == pygame.K_UP and player_pos[1] > 0:
                     player_pos[1] -= step
                     walk_sound.play()
@@ -160,16 +171,29 @@ def game_loop():
                         game_display.blit(tile_textures[tile_map[row][column]],(column*tile_size,row*tile_size))
                     elif tile_map[row][column] == 2 and frame_count > 50:
                         game_display.blit(water2_tile,(column*tile_size,row*tile_size))
+                    # Check for wind to animate grass
                     elif tile_map[row][column] == 1 and wind == 1:
                         game_display.blit(grass2_tile,(column*tile_size,row*tile_size))
                     else:
                         game_display.blit(tile_textures[tile_map[row][column]],(column*tile_size,row*tile_size))
 
+        # Draw the cat sprite
+        tile_map[0][0] = 0
+        tile_map[0][1] = 0
+        if frame_count <= 50:
+            game_display.blit(cat1,(96,10))
+        elif frame_count > 50:
+            game_display.blit(cat2,(96,10))
+
         # Draw the player character
-        if walk == 0:
+        if walk == 0 and direction == 0:
             game_display.blit(player,(player_pos[0],player_pos[1]))
-        elif walk == 1:
+        elif walk == 0 and direction == 1:
+            game_display.blit(player_flip,(player_pos[0],player_pos[1]))
+        elif walk == 1 and direction == 0:
             game_display.blit(player_walk,(player_pos[0],player_pos[1]))
+        elif walk == 1 and direction == 1:
+            game_display.blit(player_walk_flip,(player_pos[0],player_pos[1]))
 
         # Update the screen
         pygame.display.update()
