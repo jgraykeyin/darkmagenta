@@ -53,6 +53,7 @@ grass1_tile = 1
 water_tile = 2
 mush1_tile = 3
 mush2_tile = 4
+spore_tile = 5
 
 tile_textures = {
     blank_tile: pygame.image.load(os.path.join(__location__,'blank_tile.png')),
@@ -60,6 +61,7 @@ tile_textures = {
     water_tile: pygame.image.load(os.path.join(__location__,'pond1.png')),
     mush1_tile: pygame.image.load(os.path.join(__location__,'mush1.png')),
     mush2_tile: pygame.image.load(os.path.join(__location__,'mush2.png')),
+    spore_tile: pygame.image.load(os.path.join(__location__,'spores.png')),
 }
 
 # Frames for animation
@@ -142,8 +144,8 @@ def game_loop():
                     if current_tile == 3 or current_tile == 4:
                         # Add mushroom to inventory
                         inventory[current_tile] += 1
-                        # Replace with blank tile
-                        tile_map[py][px] = blank_tile
+                        # Replace with spore tile
+                        tile_map[py][px] = spore_tile
                         get_item_sound.play()
 
             # Reset the walking flag for proper walk animation
