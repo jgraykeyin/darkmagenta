@@ -100,7 +100,8 @@ for row in range(display_height):
 
 # Setup the main game loop
 def game_loop():
-    player_pos = [0,1]
+    player_pos = [0,0]
+    cat_pos = [(display_width*tile_size)-tile_size,(display_height*tile_size)-tile_size]
     frame_count = 0
     wind=0
     walk=0
@@ -179,13 +180,36 @@ def game_loop():
                     else:
                         game_display.blit(tile_textures[tile_map[row][column]],(column*tile_size,row*tile_size))
 
-        # Draw the cat sprite
+        # Draw the cat sprite, also clear corner tiles for player & cat
         tile_map[0][0] = 0
-        tile_map[0][1] = 0
+        tile_map[6][8] = 0
+        if frame_count % 20 == 0:
+            cat_direction = random.randint(0,20)
+            # 0:LEFT  1:RIGHT  2:DOWN  3:UP
+            # Move cat left
+            if cat_direction in [0,1,2,3,4,5,6,7] and cat_pos[0] > 0: 
+                cat_pos[0] -= step
+            # Move cat right
+            elif cat_direction in [8,9,10,11,12,13] and cat_pos[0] < ((display_width * tile_size) - tile_size):
+                cat_pos[0] += step
+            # Move cat down
+            elif cat_direction in [14,15,16] and cat_pos[1] < ((display_height * tile_size) - tile_size):
+                cat_pos[1] += step
+            # Move cat up
+            elif cat_direction in [17,18,19,20] and cat_pos[1] > 0:
+                cat_pos[1] -= step
+            # Cat tries to eat mushroom if it's on a mushroom tile
+            py = math.floor(cat_pos[1]/tile_size)
+            px = math.floor(cat_pos[0]/tile_size)
+            current_tile = tile_map[py][px]
+            if current_tile == 3 or current_tile == 4:
+                # Replace with spore tile
+                tile_map[py][px] = spore_tile
+                get_item_sound.play()
         if frame_count <= 50:
-            game_display.blit(cat1,(96,10))
+            game_display.blit(cat1,(cat_pos[0],cat_pos[1]))
         elif frame_count > 50:
-            game_display.blit(cat2,(96,10))
+            game_display.blit(cat2,(cat_pos[0],cat_pos[1]))
 
         # Draw the player character
         if walk == 0 and direction == 0:
