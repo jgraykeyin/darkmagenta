@@ -10,6 +10,9 @@ light_cyan = (85,255,255)
 dark_cyan = (0,170,170)
 dark_green = (0,170,0)
 light_green = (85,255,85)
+magenta = (255,85,255)
+dark_magenta = (170,0,170)
+black = (0,0,0)
 
 # Set file location to current directory
 __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
@@ -27,25 +30,31 @@ pygame.display.set_caption('Dark Magenta')
 # Initialize the game clock
 clock = pygame.time.Clock()
 
-# Load character sprite
+# Load character sprites
 player = pygame.image.load(os.path.join(__location__,'magenta_start.png'))
 player_flip = pygame.transform.flip(player,1,0)
 player_walk = pygame.image.load(os.path.join(__location__,'magenta_walk.png'))
 player_walk_flip = pygame.transform.flip(player_walk,1,0)
-# Load the cat sprite
-cat1 = pygame.image.load(os.path.join(__location__,'cat1.png'))
-cat2 = pygame.image.load(os.path.join(__location__,'cat2.png'))
+# Load the cat sprites
+cat_main = pygame.image.load(os.path.join(__location__,'cat_main.png'))
+cat_main_flip = pygame.transform.flip(cat_main,1,0)
+cat_eat = pygame.image.load(os.path.join(__location__,'cat_eat.png'))
+cat_eat_flip = pygame.transform.flip(cat_eat,1,0)
+cat_walk = pygame.image.load(os.path.join(__location__,'cat_walk.png'))
+cat_walk_flip = pygame.transform.flip(cat_walk,1,0)
 
 # Load in sound effects
 walk_sound = pygame.mixer.Sound(os.path.join(__location__,'sound_walk.wav'))
 walk_sound.set_volume(0.5)
 get_item_sound = pygame.mixer.Sound(os.path.join(__location__,'get_item.wav'))
 get_item_sound.set_volume(0.4)
+cat_pickup_sound = pygame.mixer.Sound(os.path.join(__location__,'cat_pickup.mp3'))
+cat_pickup_sound.set_volume(0.4)
 
-# Repeat ambient background sounds
-pygame.mixer.music.load(os.path.join(__location__, "forestsounds.mp3"))
-pygame.mixer.music.set_volume(0.7)
-pygame.mixer.music.play(-1,8000)
+# Load and play background music
+pygame.mixer.music.load(os.path.join(__location__, "bgmusic1.mp3"))
+pygame.mixer.music.set_volume(0.3)
+pygame.mixer.music.play(-1)
 
 # Setup tile types
 blank_tile = 0
@@ -54,6 +63,7 @@ water_tile = 2
 mush1_tile = 3
 mush2_tile = 4
 spore_tile = 5
+mush3_tile = 6
 
 tile_textures = {
     blank_tile: pygame.image.load(os.path.join(__location__,'blank_tile.png')),
@@ -62,6 +72,7 @@ tile_textures = {
     mush1_tile: pygame.image.load(os.path.join(__location__,'mush1.png')),
     mush2_tile: pygame.image.load(os.path.join(__location__,'mush2.png')),
     spore_tile: pygame.image.load(os.path.join(__location__,'spores.png')),
+    mush3_tile: pygame.image.load(os.path.join(__location__,'mush3.png')),
 }
 
 # Frames for animation
@@ -69,13 +80,21 @@ water2_tile =  pygame.image.load(os.path.join(__location__,'pond2.png'))
 grass2_tile = pygame.image.load(os.path.join(__location__,'grass2.png'))
 
 # Setup collectable resources
-resources = [mush1_tile,mush2_tile]
+resources = [mush1_tile,mush2_tile,mush3_tile]
 
 # Initialize inventory
 inventory_font = pygame.font.Font(os.path.join(__location__,'PressStart2P-Regular.ttf'),18)
 inventory = {
     mush1_tile:0,
-    mush2_tile:0
+    mush2_tile:0,
+    mush3_tile:0
+}
+
+# Initalize Cat's inventory
+inventory_cat = {
+    mush1_tile:0,
+    mush2_tile:0,
+    mush3_tile:0
 }
 
 # Create a full map of blank tiles
@@ -91,10 +110,12 @@ for row in range(display_height):
             tile = grass1_tile
         elif num == 9:
             tile = water_tile
-        elif num in [10,11,12]:
+        elif num in [10,11]:
             tile = mush1_tile
-        elif num in [13,14,15]:
+        elif num in [12,13]:
             tile = mush2_tile
+        elif num in [14,15]:
+            tile = mush3_tile
         tile_map[row][col] = tile
 
 
@@ -102,6 +123,10 @@ for row in range(display_height):
 def game_loop():
     player_pos = [0,0]
     cat_pos = [(display_width*tile_size)-tile_size,(display_height*tile_size)-tile_size]
+    cat_direction = 0
+    cat_walk_dir = 0
+    cat_walking = 0
+    nom=0
     frame_count = 0
     wind=0
     walk=0
@@ -142,7 +167,7 @@ def game_loop():
                     py = math.floor(player_pos[1]/tile_size)
                     px = math.floor(player_pos[0]/tile_size)
                     current_tile = tile_map[py][px]
-                    if current_tile == 3 or current_tile == 4:
+                    if current_tile == 3 or current_tile == 4 or current_tile == 6:
                         # Add mushroom to inventory
                         inventory[current_tile] += 1
                         # Replace with spore tile
@@ -180,36 +205,92 @@ def game_loop():
                     else:
                         game_display.blit(tile_textures[tile_map[row][column]],(column*tile_size,row*tile_size))
 
+        # Draw the inventory
+        pygame.draw.rect(game_display,light_cyan,[0,(display_height*tile_size),display_width*tile_size,50])
+        place_position = 150
+        player_title = inventory_font.render("PLAYER:", True, dark_magenta, light_cyan)
+        game_display.blit(player_title, (10,display_height*tile_size+20))
+        cpu_title = inventory_font.render("CPU:", True, dark_magenta, light_cyan)
+        game_display.blit(cpu_title, (520,display_height*tile_size+20))
+
+        for item in resources:
+            game_display.blit(tile_textures[item], (place_position, display_height*tile_size-20))
+            place_position += 1
+            text_object = inventory_font.render(str(inventory[item]),True, dark_magenta,light_cyan)
+            game_display.blit(text_object, (place_position+10,display_height*tile_size+20))
+
+            game_display.blit(tile_textures[item], (place_position+450, display_height*tile_size-20))
+            place_position += 1
+            text_object = inventory_font.render(str(inventory_cat[item]),True, dark_magenta,light_cyan)
+            game_display.blit(text_object, (place_position+460,display_height*tile_size+20))
+
+
+            place_position += 80
+
         # Draw the cat sprite, also clear corner tiles for player & cat
         tile_map[0][0] = 0
         tile_map[6][8] = 0
         if frame_count % 20 == 0:
-            cat_direction = random.randint(0,20)
-            # 0:LEFT  1:RIGHT  2:DOWN  3:UP
+            cat_dirchange = random.randint(0,20)
+            if cat_dirchange > 5:
+                cat_dirchange = cat_direction
+            else:
+                cat_direction = random.randint(0,20)
+
             # Move cat left
             if cat_direction in [0,1,2,3,4,5,6,7] and cat_pos[0] > 0: 
-                cat_pos[0] -= step
+                cat_pos[0] -= step*2
+                cat_walk_dir=0
+                cat_walking=1
             # Move cat right
             elif cat_direction in [8,9,10,11,12,13] and cat_pos[0] < ((display_width * tile_size) - tile_size):
-                cat_pos[0] += step
+                cat_pos[0] += step*2
+                cat_walk_dir=1
+                cat_walking=1
             # Move cat down
             elif cat_direction in [14,15,16] and cat_pos[1] < ((display_height * tile_size) - tile_size):
-                cat_pos[1] += step
+                cat_pos[1] += step*2
+                cat_walking=1
             # Move cat up
             elif cat_direction in [17,18,19,20] and cat_pos[1] > 0:
-                cat_pos[1] -= step
+                cat_pos[1] -= step*2
+                cat_walking=1
             # Cat tries to eat mushroom if it's on a mushroom tile
             py = math.floor(cat_pos[1]/tile_size)
             px = math.floor(cat_pos[0]/tile_size)
             current_tile = tile_map[py][px]
-            if current_tile == 3 or current_tile == 4:
+            if current_tile == 3 or current_tile == 4 or current_tile == 6:
                 # Replace with spore tile
+                inventory_cat[current_tile] += 1
                 tile_map[py][px] = spore_tile
-                get_item_sound.play()
-        if frame_count <= 50:
-            game_display.blit(cat1,(cat_pos[0],cat_pos[1]))
-        elif frame_count > 50:
-            game_display.blit(cat2,(cat_pos[0],cat_pos[1]))
+                cat_pickup_sound.play()
+                nom=1
+
+        # Animate cat when it eats mushroom
+        if nom >= 1:
+            nom+=1
+        if nom > 20:
+            nom=0
+
+        #Animate cat walk
+        if cat_walking >= 1:
+            cat_walking+=1
+        if cat_walking > 10:
+            cat_walking=0
+
+        # Render the cat sprite depending on direction and current action
+        if cat_walk_dir == 0 and nom == 0 and cat_walking == 0:
+            game_display.blit(cat_main,(cat_pos[0],cat_pos[1]))
+        elif cat_walk_dir == 0 and nom == 0 and cat_walking >= 1:
+            game_display.blit(cat_walk,(cat_pos[0],cat_pos[1]))
+        elif cat_walk_dir == 1 and nom == 0 and cat_walking == 0:
+            game_display.blit(cat_main_flip,(cat_pos[0],cat_pos[1]))
+        elif cat_walk_dir == 1 and nom == 0 and cat_walking >= 1:
+            game_display.blit(cat_walk_flip,(cat_pos[0],cat_pos[1]))
+        elif cat_walk_dir == 0 and nom >= 1:
+            game_display.blit(cat_eat,(cat_pos[0],cat_pos[1]))
+        elif cat_walk_dir == 1 and nom >= 1:
+            game_display.blit(cat_eat_flip,(cat_pos[0],cat_pos[1]))
 
         # Draw the player character
         if walk == 0 and direction == 0:
