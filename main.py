@@ -31,28 +31,28 @@ pygame.display.set_caption('Dark Magenta')
 clock = pygame.time.Clock()
 
 # Load character sprites
-player = pygame.image.load(os.path.join(__location__,'magenta_start.png'))
+player = pygame.image.load(os.path.join(__location__,'images/magenta_start.png'))
 player_flip = pygame.transform.flip(player,1,0)
-player_walk = pygame.image.load(os.path.join(__location__,'magenta_walk.png'))
+player_walk = pygame.image.load(os.path.join(__location__,'images/magenta_walk.png'))
 player_walk_flip = pygame.transform.flip(player_walk,1,0)
 # Load the cat sprites
-cat_main = pygame.image.load(os.path.join(__location__,'cat_main.png'))
+cat_main = pygame.image.load(os.path.join(__location__,'images/cat_main.png'))
 cat_main_flip = pygame.transform.flip(cat_main,1,0)
-cat_eat = pygame.image.load(os.path.join(__location__,'cat_eat.png'))
+cat_eat = pygame.image.load(os.path.join(__location__,'images/cat_eat.png'))
 cat_eat_flip = pygame.transform.flip(cat_eat,1,0)
-cat_walk = pygame.image.load(os.path.join(__location__,'cat_walk.png'))
+cat_walk = pygame.image.load(os.path.join(__location__,'images/cat_walk.png'))
 cat_walk_flip = pygame.transform.flip(cat_walk,1,0)
 
 # Load in sound effects
-walk_sound = pygame.mixer.Sound(os.path.join(__location__,'sound_walk.wav'))
+walk_sound = pygame.mixer.Sound(os.path.join(__location__,'audio/sound_walk.wav'))
 walk_sound.set_volume(0.5)
-get_item_sound = pygame.mixer.Sound(os.path.join(__location__,'get_item.wav'))
+get_item_sound = pygame.mixer.Sound(os.path.join(__location__,'audio/get_item.wav'))
 get_item_sound.set_volume(0.4)
-cat_pickup_sound = pygame.mixer.Sound(os.path.join(__location__,'cat_pickup.mp3'))
+cat_pickup_sound = pygame.mixer.Sound(os.path.join(__location__,'audio/cat_pickup.mp3'))
 cat_pickup_sound.set_volume(0.4)
 
 # Load and play background music
-pygame.mixer.music.load(os.path.join(__location__, "bgmusic1.mp3"))
+pygame.mixer.music.load(os.path.join(__location__, "audio/bgmusic1.mp3"))
 pygame.mixer.music.set_volume(0.3)
 pygame.mixer.music.play(-1)
 
@@ -66,18 +66,18 @@ spore_tile = 5
 mush3_tile = 6
 
 tile_textures = {
-    blank_tile: pygame.image.load(os.path.join(__location__,'blank_tile.png')),
-    grass1_tile: pygame.image.load(os.path.join(__location__,'grass1.png')),
-    water_tile: pygame.image.load(os.path.join(__location__,'pond1.png')),
-    mush1_tile: pygame.image.load(os.path.join(__location__,'mush1.png')),
-    mush2_tile: pygame.image.load(os.path.join(__location__,'mush2.png')),
-    spore_tile: pygame.image.load(os.path.join(__location__,'spores.png')),
-    mush3_tile: pygame.image.load(os.path.join(__location__,'mush3.png')),
+    blank_tile: pygame.image.load(os.path.join(__location__,'images/blank_tile.png')),
+    grass1_tile: pygame.image.load(os.path.join(__location__,'images/grass1.png')),
+    water_tile: pygame.image.load(os.path.join(__location__,'images/pond1.png')),
+    mush1_tile: pygame.image.load(os.path.join(__location__,'images/mush1.png')),
+    mush2_tile: pygame.image.load(os.path.join(__location__,'images/mush2.png')),
+    spore_tile: pygame.image.load(os.path.join(__location__,'images/spores.png')),
+    mush3_tile: pygame.image.load(os.path.join(__location__,'images/mush3.png')),
 }
 
 # Frames for animation
-water2_tile =  pygame.image.load(os.path.join(__location__,'pond2.png'))
-grass2_tile = pygame.image.load(os.path.join(__location__,'grass2.png'))
+water2_tile =  pygame.image.load(os.path.join(__location__,'images/pond2.png'))
+grass2_tile = pygame.image.load(os.path.join(__location__,'images/grass2.png'))
 
 # Setup collectable resources
 resources = [mush1_tile,mush2_tile,mush3_tile]
@@ -223,7 +223,6 @@ def game_loop():
             place_position += 1
             text_object = inventory_font.render(str(inventory_cat[item]),True, dark_magenta,light_cyan)
             game_display.blit(text_object, (place_position+460,display_height*tile_size+20))
-
 
             place_position += 80
 
