@@ -6,3 +6,5 @@ Project Dark Magenta goals:
 * Collect items to create potions
 * Battle system
 * Restrict colors to CGA palette
+
+![Screenshot](https://github.com/jgraykeyin/darkmagenta/blob/main/screenshot.png)
