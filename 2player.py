@@ -64,6 +64,7 @@ mush1_tile = 3
 mush2_tile = 4
 spore_tile = 5
 mush3_tile = 6
+camp_tile = 7
 
 tile_textures = {
     blank_tile: pygame.image.load(os.path.join(__location__,'images/blank_tile.png')),
@@ -73,11 +74,14 @@ tile_textures = {
     mush2_tile: pygame.image.load(os.path.join(__location__,'images/mush2.png')),
     spore_tile: pygame.image.load(os.path.join(__location__,'images/spores.png')),
     mush3_tile: pygame.image.load(os.path.join(__location__,'images/mush3.png')),
+    camp_tile: pygame.image.load(os.path.join(__location__,'images/campfire1.png'))
 }
 
 # Frames for animation
 water2_tile =  pygame.image.load(os.path.join(__location__,'images/pond2.png'))
 grass2_tile = pygame.image.load(os.path.join(__location__,'images/grass2.png'))
+camp2_tile = pygame.image.load(os.path.join(__location__,'images/campfire2.png'))
+
 
 # Setup collectable resources
 resources = [mush1_tile,mush2_tile,mush3_tile]
@@ -117,6 +121,11 @@ for row in range(display_height):
         elif num in [14,15]:
             tile = mush3_tile
         tile_map[row][col] = tile
+
+# Select a random tile and place the campfire
+r_row = random.randint(1,display_height-1)
+r_col = random.randint(1,display_width-1)
+tile_map[r_row][r_col] = camp_tile
 
 
 # Setup the main game loop
@@ -274,9 +283,19 @@ def game_loop():
                         game_display.blit(tile_textures[tile_map[row][column]],(column*tile_size,row*tile_size))
                     elif tile_map[row][column] == 2 and frame_count > 50:
                         game_display.blit(water2_tile,(column*tile_size,row*tile_size))
+                    elif tile_map[row][column] == 7 and frame_count <= 50:
+                        game_display.blit(tile_textures[tile_map[row][column]],(column*tile_size,row*tile_size))
+                    elif tile_map[row][column] == 7 and frame_count > 50:
+                        game_display.blit(camp2_tile,(column*tile_size,row*tile_size))
                     # Check for wind to animate grass
                     elif tile_map[row][column] == 1 and wind == 1:
                         game_display.blit(grass2_tile,(column*tile_size,row*tile_size))
+                    elif tile_map[row][column] == 5:
+                        grow_roll = random.randint(0,5000)
+                        if grow_roll >= 4998:
+                            mush_list = [3,4,6]
+                            tile_map[row][column] = random.choice(mush_list)
+                        game_display.blit(tile_textures[tile_map[row][column]],(column*tile_size,row*tile_size))
                     else:
                         game_display.blit(tile_textures[tile_map[row][column]],(column*tile_size,row*tile_size))
 
