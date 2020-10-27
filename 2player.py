@@ -131,8 +131,23 @@ def game_loop():
     walk=0
     direction=0
     game_exit = False
+    player_collide = 0
 
     while not game_exit:
+        #print("px: {}, cx: {}".format(player_pos[0],cat_pos[0]))
+        collide_x = abs(player_pos[0] - cat_pos[0])
+        collide_y = abs(player_pos[1] - cat_pos[1])
+        if collide_x <= tile_size/2+24:
+            print("X collide {},{}".format(player_pos[0],cat_pos[0]))
+            if collide_y <= tile_size/2+24:
+                print("Y collide {},{}".format(player_pos[1],cat_pos[1]))
+                player_collide = 1
+            else:
+                player_collide = 0
+        else:
+            player_collide = 0
+
+
         # Check for quit event
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -143,22 +158,41 @@ def game_loop():
                 # Trying to use this to stop player from walking into water
                 current_tile = tile_map[math.floor(player_pos[1]/tile_size)][math.floor(player_pos[0]/tile_size)]
 
-                if event.key == pygame.K_d and player_pos[0] < ((display_width * tile_size) - tile_size):
+                if event.key == pygame.K_d and player_pos[0] < ((display_width * tile_size) - tile_size) and player_collide == 0:
                     player_pos[0] += step
                     walk_sound.play()
                     walk=1
                     direction=0
-                elif event.key == pygame.K_a and player_pos[0] > 0:
+                # Check for a player collision and knock the character back
+                if event.key == pygame.K_d and player_pos[0] < ((display_width * tile_size) - tile_size) and player_collide == 1:
+                    player_pos[0] -= step*2
+                    walk_sound.play()
+                    walk=1
+                    direction=0
+                elif event.key == pygame.K_a and player_pos[0] > 0 and player_collide == 0:
                     player_pos[0] -= step
                     walk_sound.play()
                     walk=1
                     direction=1
-                elif event.key == pygame.K_w and player_pos[1] > 0:
+                elif event.key == pygame.K_a and player_pos[0] > 0 and player_collide == 1:
+                    player_pos[0] += step*2
+                    walk_sound.play()
+                    walk=1
+                    direction=1
+                elif event.key == pygame.K_w and player_pos[1] > 0 and player_collide == 0:
                     player_pos[1] -= step
                     walk_sound.play()
                     walk=1
-                elif event.key == pygame.K_s and player_pos[1] < ((display_height * tile_size) - tile_size):
+                elif event.key == pygame.K_w and player_pos[1] > 0 and player_collide == 1:
+                    player_pos[1] += step*2
+                    walk_sound.play()
+                    walk=1
+                elif event.key == pygame.K_s and player_pos[1] < ((display_height * tile_size) - tile_size) and player_collide == 0:
                     player_pos[1] += step
+                    walk_sound.play()
+                    walk=1
+                elif event.key == pygame.K_s and player_pos[1] < ((display_height * tile_size) - tile_size) and player_collide == 1:
+                    player_pos[1] -= step*2
                     walk_sound.play()
                     walk=1
                 # Pick-up mushroom if it's available on current tile
@@ -173,22 +207,36 @@ def game_loop():
                     get_item_sound.play()
 
                 # Move cat left
-                elif event.key == pygame.K_LEFT and cat_pos[0] > 0:
+                elif event.key == pygame.K_LEFT and cat_pos[0] > 0 and player_collide == 0:
                     cat_pos[0] -= step
                     cat_walk_dir=0
                     cat_walking=1
+                elif event.key == pygame.K_LEFT and cat_pos[0] > 0 and player_collide == 1:
+                    cat_pos[0] += step*2
+                    cat_walk_dir=0
+                    cat_walking=1
                 # Move cat right
-                elif event.key == pygame.K_RIGHT and cat_pos[0] < ((display_width * tile_size) - tile_size):
+                elif event.key == pygame.K_RIGHT and cat_pos[0] < ((display_width * tile_size) - tile_size) and player_collide == 0:
                     cat_pos[0] += step
                     cat_walk_dir=1
                     cat_walking=1
+                elif event.key == pygame.K_RIGHT and cat_pos[0] < ((display_width * tile_size) - tile_size) and player_collide == 1:
+                    cat_pos[0] -= step*2
+                    cat_walk_dir=1
+                    cat_walking=1
                 # Move cat down
-                elif event.key == pygame.K_DOWN and cat_pos[1] < ((display_height * tile_size) - tile_size):
+                elif event.key == pygame.K_DOWN and cat_pos[1] < ((display_height * tile_size) - tile_size) and player_collide == 0:
                     cat_pos[1] += step
                     cat_walking=1
+                elif event.key == pygame.K_DOWN and cat_pos[1] < ((display_height * tile_size) - tile_size) and player_collide == 1:
+                    cat_pos[1] -= step*2
+                    cat_walking=1
                 # Move cat up
-                elif event.key == pygame.K_UP and cat_pos[1] > 0:
+                elif event.key == pygame.K_UP and cat_pos[1] > 0 and player_collide == 0:
                     cat_pos[1] -= step
+                    cat_walking=1
+                elif event.key == pygame.K_UP and cat_pos[1] > 0 and player_collide == 1:
+                    cat_pos[1] += step*2
                     cat_walking=1
             # Cat tries to eat mushroom if it's on a mushroom tile
             py = math.floor(cat_pos[1]/tile_size)
@@ -235,20 +283,20 @@ def game_loop():
         # Draw the inventory
         pygame.draw.rect(game_display,light_cyan,[0,(display_height*tile_size),display_width*tile_size,50])
         place_position = 150
-        player_title = inventory_font.render("PLAYER:", True, dark_magenta, light_cyan)
+        player_title = inventory_font.render("PLAYER1:", True, dark_magenta, light_cyan)
         game_display.blit(player_title, (10,display_height*tile_size+20))
-        cpu_title = inventory_font.render("CPU:", True, dark_magenta, light_cyan)
-        game_display.blit(cpu_title, (520,display_height*tile_size+20))
+        cpu_title = inventory_font.render("PLAYER2:", True, dark_magenta, light_cyan)
+        game_display.blit(cpu_title, (460,display_height*tile_size+20))
 
         for item in resources:
             game_display.blit(tile_textures[item], (place_position, display_height*tile_size-20))
             place_position += 1
-            text_object = inventory_font.render(str(inventory[item]),True, dark_magenta,light_cyan)
+            text_object = inventory_font.render(str(inventory[item]),True,magenta,light_cyan)
             game_display.blit(text_object, (place_position+10,display_height*tile_size+20))
 
             game_display.blit(tile_textures[item], (place_position+450, display_height*tile_size-20))
             place_position += 1
-            text_object = inventory_font.render(str(inventory_cat[item]),True, dark_magenta,light_cyan)
+            text_object = inventory_font.render(str(inventory_cat[item]),True, magenta,light_cyan)
             game_display.blit(text_object, (place_position+460,display_height*tile_size+20))
 
             place_position += 80
