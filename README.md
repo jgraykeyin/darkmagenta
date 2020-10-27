@@ -7,4 +7,4 @@ Project Dark Magenta goals:
 * Battle system
 * Restrict colors to CGA palette
 
-![Screenshot](https://github.com/jgraykeyin/darkmagenta/blob/main/screenshot.png)
+![Screenshot](https://github.com/jgraykeyin/darkmagenta/blob/main/images/screenshot.png)
