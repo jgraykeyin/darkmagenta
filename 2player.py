@@ -1,3 +1,8 @@
+# Project Dark Magenta by Justin Gray.
+# Pygame development project for a two player sprite-based collect & craft game.
+# Players are controlled using A,W,S,D (player 1) and Left,Right,Up,Down (player 2).
+# Each collectable mushroom has 3 levels of crafting, poison mushrooms reduce HP by 1.
+
 import pygame
 import os
 import random
@@ -246,7 +251,8 @@ def game_loop():
                 elif event.key == pygame.K_UP and cat_pos[1] > 0 and player_collide == 1:
                     cat_pos[1] += step*2
                     cat_walking=1
-            # Cat tries to eat mushroom if it's on a mushroom tile
+
+            # Player 2 tries to eat mushroom if it's on a mushroom tile
             py = math.floor(cat_pos[1]/tile_size)
             px = math.floor(cat_pos[0]/tile_size)
             current_tile = tile_map[py][px]
@@ -257,12 +263,13 @@ def game_loop():
                 cat_pickup_sound.play()
                 nom=1
             elif current_tile == 9:
+                # Poison mushroom, it reduces the player's HP by 1
                 inventory_cat[heart_tile] -= 1
                 nom=1
                 tile_map[py][px] = spore_tile
                 poison_sound.play()
 
-            # Pick-up mushroom if it's available on current tile
+            # Player 1 pick-up mushroom if it's available on current tile
             py = math.floor(player_pos[1]/tile_size)
             px = math.floor(player_pos[0]/tile_size)
             current_tile = tile_map[py][px]
@@ -318,7 +325,7 @@ def game_loop():
                     else:
                         game_display.blit(tile_textures[tile_map[row][column]],(column*tile_size,row*tile_size))
 
-        # Draw the inventory
+        # Draw the inventory onto the bottom part of the screen
         pygame.draw.rect(game_display,light_cyan,[0,(display_height*tile_size),display_width*tile_size,50])
 
         place_position = 130
@@ -340,7 +347,7 @@ def game_loop():
 
             place_position += 60
 
-        # Draw the cat sprite, also clear corner tiles for player & cat
+        # Clear corner tiles for player & cat
         tile_map[0][0] = 0
         tile_map[6][8] = 0
 
@@ -370,7 +377,7 @@ def game_loop():
         elif cat_walk_dir == 1 and nom >= 1:
             game_display.blit(cat_eat_flip,(cat_pos[0],cat_pos[1]))
 
-        # Draw the player character
+        # Render the player character
         if walk == 0 and direction == 0:
             game_display.blit(player,(player_pos[0],player_pos[1]))
         elif walk == 0 and direction == 1:
@@ -392,13 +399,14 @@ def game_loop():
         # Check the player's health, if it's game over reset the inventory 
         # TODO: Setup an end-game sequence
         if inventory[heart_tile] < 1:
-            #print("heart zero")
             player_pos = [0,0]
             inventory[mush1_tile] = 0
             inventory[mush2_tile] = 0
             inventory[mush3_tile] = 0
             inventory[heart_tile] = 2
 
+        # Check the cat's health, game over/reset if it's zero
+        # TODO: Attach the end-game sequence here
         if inventory_cat[heart_tile] < 1:
             cat_pos = [(display_width*tile_size)-tile_size,(display_height*tile_size)-tile_size]
             inventory_cat[mush1_tile] = 0
