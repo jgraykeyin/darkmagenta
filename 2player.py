@@ -50,6 +50,8 @@ get_item_sound = pygame.mixer.Sound(os.path.join(__location__,'audio/get_item.wa
 get_item_sound.set_volume(0.4)
 cat_pickup_sound = pygame.mixer.Sound(os.path.join(__location__,'audio/cat_pickup.mp3'))
 cat_pickup_sound.set_volume(0.4)
+poison_sound = pygame.mixer.Sound(os.path.join(__location__,'audio/poison.mp3'))
+poison_sound.set_volume(0.4)
 
 # Load and play background music
 pygame.mixer.music.load(os.path.join(__location__, "audio/bgmusic1.mp3"))
@@ -65,16 +67,20 @@ mush2_tile = 4
 spore_tile = 5
 mush3_tile = 6
 camp_tile = 7
+heart_tile = 8
+mush4_tile = 9
 
 tile_textures = {
     blank_tile: pygame.image.load(os.path.join(__location__,'images/blank_tile.png')),
     grass1_tile: pygame.image.load(os.path.join(__location__,'images/grass1.png')),
     water_tile: pygame.image.load(os.path.join(__location__,'images/pond1.png')),
     mush1_tile: pygame.image.load(os.path.join(__location__,'images/mush1.png')),
-    mush2_tile: pygame.image.load(os.path.join(__location__,'images/mush2.png')),
+    mush2_tile: pygame.image.load(os.path.join(__location__,'images/mush4.png')),
     spore_tile: pygame.image.load(os.path.join(__location__,'images/spores.png')),
     mush3_tile: pygame.image.load(os.path.join(__location__,'images/mush3.png')),
-    camp_tile: pygame.image.load(os.path.join(__location__,'images/campfire1.png'))
+    camp_tile: pygame.image.load(os.path.join(__location__,'images/campfire1.png')),
+    heart_tile: pygame.image.load(os.path.join(__location__,'images/heart_icon.png')),
+    mush4_tile: pygame.image.load(os.path.join(__location__,'images/mush5.png'))
 }
 
 # Frames for animation
@@ -84,21 +90,23 @@ camp2_tile = pygame.image.load(os.path.join(__location__,'images/campfire2.png')
 
 
 # Setup collectable resources
-resources = [mush1_tile,mush2_tile,mush3_tile]
+resources = [mush1_tile,mush2_tile,mush3_tile,heart_tile]
 
 # Initialize inventory
-inventory_font = pygame.font.Font(os.path.join(__location__,'PressStart2P-Regular.ttf'),18)
+inventory_font = pygame.font.Font(os.path.join(__location__,'PressStart2P-Regular.ttf'),16)
 inventory = {
     mush1_tile:0,
     mush2_tile:0,
-    mush3_tile:0
+    mush3_tile:0,
+    heart_tile:2
 }
 
 # Initalize Cat's inventory
 inventory_cat = {
     mush1_tile:0,
     mush2_tile:0,
-    mush3_tile:0
+    mush3_tile:0,
+    heart_tile:2
 }
 
 # Create a full map of blank tiles
@@ -107,19 +115,21 @@ tile_map = [[blank_tile for w in range(display_width)] for h in range(display_he
 # Generate the map
 for row in range(display_height):
     for col in range(display_width):
-        num = random.randint(0,15)
+        num = random.randint(0,20)
         if num == 0:
             tile = blank_tile
         elif num in [1,2,3,4,5,6,7,8]:
             tile = grass1_tile
         elif num == 9:
             tile = water_tile
-        elif num in [10,11]:
+        elif num in [10,11,12]:
             tile = mush1_tile
-        elif num in [12,13]:
+        elif num in [13,14,15]:
             tile = mush2_tile
-        elif num in [14,15]:
+        elif num in [16,17,18]:
             tile = mush3_tile
+        elif num in [19,20]:
+            tile = mush4_tile
         tile_map[row][col] = tile
 
 # Select a random tile and place the campfire
@@ -143,13 +153,13 @@ def game_loop():
     player_collide = 0
 
     while not game_exit:
-        #print("px: {}, cx: {}".format(player_pos[0],cat_pos[0]))
+        # Check for player vs player collisions here
         collide_x = abs(player_pos[0] - cat_pos[0])
         collide_y = abs(player_pos[1] - cat_pos[1])
         if collide_x <= tile_size/2+24:
-            print("X collide {},{}".format(player_pos[0],cat_pos[0]))
+            #print("X collide {},{}".format(player_pos[0],cat_pos[0]))
             if collide_y <= tile_size/2+24:
-                print("Y collide {},{}".format(player_pos[1],cat_pos[1]))
+                #print("Y collide {},{}".format(player_pos[1],cat_pos[1]))
                 player_collide = 1
             else:
                 player_collide = 0
@@ -164,7 +174,6 @@ def game_loop():
                 quit()
 
             elif event.type == pygame.KEYDOWN:
-                # Trying to use this to stop player from walking into water
                 current_tile = tile_map[math.floor(player_pos[1]/tile_size)][math.floor(player_pos[0]/tile_size)]
 
                 if event.key == pygame.K_d and player_pos[0] < ((display_width * tile_size) - tile_size) and player_collide == 0:
@@ -204,16 +213,6 @@ def game_loop():
                     player_pos[1] -= step*2
                     walk_sound.play()
                     walk=1
-                # Pick-up mushroom if it's available on current tile
-                py = math.floor(player_pos[1]/tile_size)
-                px = math.floor(player_pos[0]/tile_size)
-                current_tile = tile_map[py][px]
-                if current_tile == 3 or current_tile == 4 or current_tile == 6:
-                    # Add mushroom to inventory
-                    inventory[current_tile] += 1
-                    # Replace with spore tile
-                    tile_map[py][px] = spore_tile
-                    get_item_sound.play()
 
                 # Move cat left
                 elif event.key == pygame.K_LEFT and cat_pos[0] > 0 and player_collide == 0:
@@ -257,6 +256,26 @@ def game_loop():
                 tile_map[py][px] = spore_tile
                 cat_pickup_sound.play()
                 nom=1
+            elif current_tile == 9:
+                inventory_cat[heart_tile] -= 1
+                nom=1
+                tile_map[py][px] = spore_tile
+                poison_sound.play()
+
+            # Pick-up mushroom if it's available on current tile
+            py = math.floor(player_pos[1]/tile_size)
+            px = math.floor(player_pos[0]/tile_size)
+            current_tile = tile_map[py][px]
+            if current_tile == 3 or current_tile == 4 or current_tile == 6:
+                # Add mushroom to inventory
+                inventory[current_tile] += 1
+                # Replace with spore tile
+                tile_map[py][px] = spore_tile
+                get_item_sound.play()
+            elif current_tile == 9:
+                inventory[heart_tile] -= 1
+                tile_map[py][px] = spore_tile
+                poison_sound.play()
 
             # Reset the walking flag for proper walk animation
             if event.type == pygame.KEYUP:
@@ -293,7 +312,7 @@ def game_loop():
                     elif tile_map[row][column] == 5:
                         grow_roll = random.randint(0,5000)
                         if grow_roll >= 4998:
-                            mush_list = [3,4,6]
+                            mush_list = [3,4,6,9]
                             tile_map[row][column] = random.choice(mush_list)
                         game_display.blit(tile_textures[tile_map[row][column]],(column*tile_size,row*tile_size))
                     else:
@@ -301,24 +320,25 @@ def game_loop():
 
         # Draw the inventory
         pygame.draw.rect(game_display,light_cyan,[0,(display_height*tile_size),display_width*tile_size,50])
-        place_position = 150
+
+        place_position = 130
         player_title = inventory_font.render("PLAYER1:", True, dark_magenta, light_cyan)
         game_display.blit(player_title, (10,display_height*tile_size+20))
         cpu_title = inventory_font.render("PLAYER2:", True, dark_magenta, light_cyan)
         game_display.blit(cpu_title, (460,display_height*tile_size+20))
 
         for item in resources:
-            game_display.blit(tile_textures[item], (place_position, display_height*tile_size-20))
+            game_display.blit(tile_textures[item], (place_position-20, display_height*tile_size-20))
             place_position += 1
             text_object = inventory_font.render(str(inventory[item]),True,magenta,light_cyan)
-            game_display.blit(text_object, (place_position+10,display_height*tile_size+20))
+            game_display.blit(text_object, (place_position+50,display_height*tile_size+20))
 
-            game_display.blit(tile_textures[item], (place_position+450, display_height*tile_size-20))
+            game_display.blit(tile_textures[item], (place_position+430, display_height*tile_size-20))
             place_position += 1
             text_object = inventory_font.render(str(inventory_cat[item]),True, magenta,light_cyan)
-            game_display.blit(text_object, (place_position+460,display_height*tile_size+20))
+            game_display.blit(text_object, (place_position+500,display_height*tile_size+20))
 
-            place_position += 80
+            place_position += 60
 
         # Draw the cat sprite, also clear corner tiles for player & cat
         tile_map[0][0] = 0
@@ -368,6 +388,24 @@ def game_loop():
         wind_roll = random.randint(0,40)
         if wind_roll > 39:
             wind = 0
+
+        # Check the player's health, if it's game over reset the inventory 
+        # TODO: Setup an end-game sequence
+        if inventory[heart_tile] < 1:
+            #print("heart zero")
+            player_pos = [0,0]
+            inventory[mush1_tile] = 0
+            inventory[mush2_tile] = 0
+            inventory[mush3_tile] = 0
+            inventory[heart_tile] = 2
+
+        if inventory_cat[heart_tile] < 1:
+            cat_pos = [(display_width*tile_size)-tile_size,(display_height*tile_size)-tile_size]
+            inventory_cat[mush1_tile] = 0
+            inventory_cat[mush2_tile] = 0
+            inventory_cat[mush3_tile] = 0
+            inventory_cat[heart_tile] = 2
+
 
 game_loop()
 pygame.quit()
