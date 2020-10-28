@@ -136,12 +136,14 @@ for row in range(display_height):
         elif num in [19,20]:
             tile = mush4_tile
         tile_map[row][col] = tile
+# Clear corner tiles for player & cat
+tile_map[0][0] = 0
+tile_map[6][8] = 0
 
 # Select a random tile and place the campfire
 r_row = random.randint(1,display_height-1)
 r_col = random.randint(1,display_width-1)
 tile_map[r_row][r_col] = camp_tile
-
 
 # Setup the main game loop
 def game_loop():
@@ -180,6 +182,7 @@ def game_loop():
 
             elif event.type == pygame.KEYDOWN:
                 current_tile = tile_map[math.floor(player_pos[1]/tile_size)][math.floor(player_pos[0]/tile_size)]
+                current_cat_tile = tile_map[math.floor(cat_pos[1]/tile_size)][math.floor(cat_pos[0]/tile_size)]
 
                 if event.key == pygame.K_d and player_pos[0] < ((display_width * tile_size) - tile_size) and player_collide == 0:
                     player_pos[0] += step
@@ -218,7 +221,10 @@ def game_loop():
                     player_pos[1] -= step*2
                     walk_sound.play()
                     walk=1
-
+                elif event.key == pygame.K_1 and inventory[mush1_tile] >= 5 and current_tile == 7:
+                    # Craft a heart using 5 mushrooms
+                    tile_map[0][0] = 8
+                    inventory[mush1_tile] = inventory[mush1_tile] - 5
                 # Move cat left
                 elif event.key == pygame.K_LEFT and cat_pos[0] > 0 and player_collide == 0:
                     cat_pos[0] -= step
@@ -251,12 +257,16 @@ def game_loop():
                 elif event.key == pygame.K_UP and cat_pos[1] > 0 and player_collide == 1:
                     cat_pos[1] += step*2
                     cat_walking=1
+                elif event.key == pygame.K_RETURN and inventory_cat[mush1_tile] >= 5 and current_cat_tile == 7:
+                    # Craft a heart using 5 mushrooms
+                    tile_map[6][8] = 8
+                    inventory_cat[mush1_tile] = inventory_cat[mush1_tile] - 5
 
             # Player 2 tries to eat mushroom if it's on a mushroom tile
             py = math.floor(cat_pos[1]/tile_size)
             px = math.floor(cat_pos[0]/tile_size)
             current_tile = tile_map[py][px]
-            if current_tile == 3 or current_tile == 4 or current_tile == 6:
+            if current_tile == 3 or current_tile == 4 or current_tile == 6 or current_tile == 8:
                 # Replace with spore tile
                 inventory_cat[current_tile] += 1
                 tile_map[py][px] = spore_tile
@@ -273,7 +283,7 @@ def game_loop():
             py = math.floor(player_pos[1]/tile_size)
             px = math.floor(player_pos[0]/tile_size)
             current_tile = tile_map[py][px]
-            if current_tile == 3 or current_tile == 4 or current_tile == 6:
+            if current_tile == 3 or current_tile == 4 or current_tile == 6 or current_tile == 8:
                 # Add mushroom to inventory
                 inventory[current_tile] += 1
                 # Replace with spore tile
@@ -346,10 +356,6 @@ def game_loop():
             game_display.blit(text_object, (place_position+500,display_height*tile_size+20))
 
             place_position += 60
-
-        # Clear corner tiles for player & cat
-        tile_map[0][0] = 0
-        tile_map[6][8] = 0
 
         # Animate cat when it eats mushroom
         if nom >= 1:
