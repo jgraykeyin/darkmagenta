@@ -13,6 +13,7 @@ import pygame
 import os
 import random
 import math
+import time
 
 pygame.init()
 
@@ -152,6 +153,17 @@ r_row = random.randint(1,display_height-1)
 r_col = random.randint(1,display_width-1)
 tile_map[r_row][r_col] = camp_tile
 
+def craft_message(msg):
+    font = pygame.font.Font(os.path.join(__location__,'PressStart2P-Regular.ttf'), 32)
+    text = font.render(msg,True,magenta,light_cyan)
+    textRect = text.get_rect()
+    textRect.center = ((display_width*tile_size) / 2, (display_height*tile_size) / 2)
+    game_display.blit(text,textRect)
+    pygame.display.update()
+    time.sleep(2)
+
+
+# Function to display the logo and prompt user to press enter to play
 def main_menu():
     menu_height = 700
     menu_move = 0
@@ -279,11 +291,23 @@ def game_loop():
                     tile_map[0][0] = 8
                     inventory[mush1_tile] = inventory[mush1_tile] - 5
                     craft_sound.play()
+                    craft_message("P1 CRAFTED HEART!")
                 elif event.key == pygame.K_2 and inventory[mush2_tile] >= 5 and current_tile == 7:
                     # Craft a speed bonus using 5 type-B mushroom
                     tile_map[0][0] = 10
                     inventory[mush2_tile] = inventory[mush2_tile] - 5
                     craft_sound.play()
+                    craft_message("P1 CRAFTED SPEED BONUS!")
+                elif event.key == pygame.K_3 and inventory[mush3_tile] >= 5 and current_tile == 7:
+                    craft_sound.play()
+                    craft_message("P1 CRAFTED SPORE MAGIC!")
+                    for row in range(display_height):
+                        for col in range(display_width):
+                            # Chance of turning every mushroom into a poison mushroom
+                            roll = random.randint(0,20)
+                            if tile_map[row][col] in [3,4,6] and roll < 15:
+                                tile_map[row][col] = 9
+                                
                 # Move cat left
                 elif event.key == pygame.K_LEFT and cat_pos[0] > 0 and player_collide == 0:
                     cat_pos[0] -= step + speed_bonus_p2
@@ -321,11 +345,13 @@ def game_loop():
                     tile_map[6][8] = 8
                     inventory_cat[mush1_tile] = inventory_cat[mush1_tile] - 5
                     craft_sound.play()
+                    craft_message("P2 CRAFTED HEART!")
                 elif event.key == pygame.K_9 and inventory_cat[mush2_tile] >= 5 and current_cat_tile == 7:
                     # Craft a speed bonus using 5 type-B mushroom
                     tile_map[6][8] = 10
                     inventory_cat[mush2_tile] = inventory_cat[mush2_tile] - 5
                     craft_sound.play()
+                    craft_message("P1 CRAFTED SPEED BONUS!")
 
             # Player 2 tries to eat mushroom if it's on a mushroom tile
             py = math.floor(cat_pos[1]/tile_size)
@@ -343,12 +369,14 @@ def game_loop():
                 nom=1
                 tile_map[py][px] = spore_tile
                 poison_sound.play()
+                craft_message("P2 LOSES 1 HP FROM POISON!")
             elif current_tile == 10:
                 # Enable speed bonus
                 tile_map[py][px] = blank_tile
                 speed_bonus_p2 = step
                 speed_count_p2 = 0
                 craft_sound.play()
+                craft_message("P2 GETS SPEED BONUS")
 
             # Player 1 pick-up mushroom if it's available on current tile
             py = math.floor(player_pos[1]/tile_size)
@@ -364,12 +392,14 @@ def game_loop():
                 inventory[heart_tile] -= 1
                 tile_map[py][px] = spore_tile
                 poison_sound.play()
+                craft_message("P1 LOSES 1 HP FROM POISON!")
             elif current_tile == 10:
                 # Enable speed bonus
                 tile_map[py][px] = blank_tile
                 speed_bonus_p1 = step
                 speed_count_p1 = 0
                 craft_sound.play()
+                craft_message("P1 GETS SPEED BONUS")
 
             # If the p1 speed bonus is enabled, set a timer so that it deactivates after 200 ticks
             if speed_count_p1 < 200:
