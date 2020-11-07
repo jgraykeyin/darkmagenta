@@ -68,6 +68,10 @@ craft_sound = pygame.mixer.Sound(os.path.join(__location__,'audio/craftsound.mp3
 craft_sound.set_volume(0.4)
 water_sound = pygame.mixer.Sound(os.path.join(__location__,'audio/water_dmg.mp3'))
 water_sound.set_volume(0.3)
+hit_sound = pygame.mixer.Sound(os.path.join(__location__,'audio/hit.wav'))
+hit_sound.set_volume(0.3)
+shing_menu_sound = pygame.mixer.Sound(os.path.join(__location__,'audio/shining.wav'))
+shing_menu_sound.set_volume(0.3)
 
 # Setup tile types
 blank_tile = 0
@@ -181,6 +185,7 @@ def spore_magic():
 def main_menu():
     menu_height = 700
     menu_move = 0
+    shing = 0
     game_begin = False
 
     # Start playing main menu music
@@ -202,6 +207,11 @@ def main_menu():
         game_display.fill(black)
         if menu_move % 20 == 0 and menu_height > 50:
             menu_height -= 2
+        elif menu_height <= 50 and shing == 0:
+            # Make that shiiiing sound that NES games would do on the title screens
+            shing_menu_sound.play()
+            shing=1
+
         game_display.blit(main_menu_image,(20,menu_height))
         pygame.display.update()
         clock.tick(60)
@@ -271,7 +281,7 @@ def game_loop():
                 # Check for a player collision and knock the character back
                 if event.key == pygame.K_d and player_pos[0] < ((display_width * tile_size) - tile_size) and player_collide == 1:
                     player_pos[0] -= step*2
-                    walk_sound.play()
+                    hit_sound.play()
                     walk=1
                     direction=0
                 elif event.key == pygame.K_a and player_pos[0] > 0 and player_collide == 0:
@@ -281,7 +291,7 @@ def game_loop():
                     direction=1
                 elif event.key == pygame.K_a and player_pos[0] > 0 and player_collide == 1:
                     player_pos[0] += step*2
-                    walk_sound.play()
+                    hit_sound.play()
                     walk=1
                     direction=1
                 elif event.key == pygame.K_w and player_pos[1] > 0 and player_collide == 0:
@@ -290,7 +300,7 @@ def game_loop():
                     walk=1
                 elif event.key == pygame.K_w and player_pos[1] > 0 and player_collide == 1:
                     player_pos[1] += step*2
-                    walk_sound.play()
+                    hit_sound.play()
                     walk=1
                 elif event.key == pygame.K_s and player_pos[1] < ((display_height * tile_size) - tile_size) and player_collide == 0:
                     player_pos[1] += step + speed_bonus_p1
@@ -298,7 +308,7 @@ def game_loop():
                     walk=1
                 elif event.key == pygame.K_s and player_pos[1] < ((display_height * tile_size) - tile_size) and player_collide == 1:
                     player_pos[1] -= step*2
-                    walk_sound.play()
+                    hit_sound.play()
                     walk=1
                 elif event.key == pygame.K_1 and inventory[mush1_tile] >= 5 and current_tile == 7:
                     # Craft a heart using 5 type-A mushrooms
@@ -326,6 +336,7 @@ def game_loop():
                     cat_pos[0] += step*2
                     cat_walk_dir=0
                     cat_walking=1
+                    hit_sound.play()
                 # Move cat right
                 elif event.key == pygame.K_RIGHT and cat_pos[0] < ((display_width * tile_size) - tile_size) and player_collide == 0:
                     cat_pos[0] += step + speed_bonus_p2
@@ -335,6 +346,7 @@ def game_loop():
                     cat_pos[0] -= step*2
                     cat_walk_dir=1
                     cat_walking=1
+                    hit_sound.play()
                 # Move cat down
                 elif event.key == pygame.K_DOWN and cat_pos[1] < ((display_height * tile_size) - tile_size) and player_collide == 0:
                     cat_pos[1] += step + speed_bonus_p2
@@ -342,6 +354,7 @@ def game_loop():
                 elif event.key == pygame.K_DOWN and cat_pos[1] < ((display_height * tile_size) - tile_size) and player_collide == 1:
                     cat_pos[1] -= step*2
                     cat_walking=1
+                    hit_sound.play()
                 # Move cat up
                 elif event.key == pygame.K_UP and cat_pos[1] > 0 and player_collide == 0:
                     cat_pos[1] -= step + speed_bonus_p2
@@ -349,6 +362,7 @@ def game_loop():
                 elif event.key == pygame.K_UP and cat_pos[1] > 0 and player_collide == 1:
                     cat_pos[1] += step*2
                     cat_walking=1
+                    hit_sound.play()
                 elif event.key == pygame.K_8 and inventory_cat[mush1_tile] >= 5 and current_cat_tile == 7:
                     # Craft a heart using 5 mushrooms
                     tile_map[6][8] = 8
