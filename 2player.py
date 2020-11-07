@@ -2,6 +2,12 @@
 # Pygame development project for a two player sprite-based collect & craft game.
 # Players are controlled using A,W,S,D (player 1) and Left,Right,Up,Down (player 2).
 # Each collectable mushroom has 3 levels of crafting, poison mushrooms reduce HP by 1.
+#
+# Music by 'sawsquarenoise` from the Towel Defense OST (CC BY 4.0 license)
+# https://freemusicarchive.org/music/sawsquarenoise/
+# 
+# Sound effects from freesound.org
+# Graphics drawn using piskel.com
 
 import pygame
 import os
@@ -57,11 +63,8 @@ cat_pickup_sound = pygame.mixer.Sound(os.path.join(__location__,'audio/cat_picku
 cat_pickup_sound.set_volume(0.4)
 poison_sound = pygame.mixer.Sound(os.path.join(__location__,'audio/poison.mp3'))
 poison_sound.set_volume(0.4)
-
-# Load and play background music
-pygame.mixer.music.load(os.path.join(__location__, "audio/bgmusic1.mp3"))
-pygame.mixer.music.set_volume(0.3)
-pygame.mixer.music.play(-1)
+craft_sound = pygame.mixer.Sound(os.path.join(__location__,'audio/craftsound.mp3'))
+craft_sound.set_volume(0.4)
 
 # Setup tile types
 blank_tile = 0
@@ -74,6 +77,7 @@ mush3_tile = 6
 camp_tile = 7
 heart_tile = 8
 mush4_tile = 9
+speed_tile = 10
 
 tile_textures = {
     blank_tile: pygame.image.load(os.path.join(__location__,'images/blank_tile.png')),
@@ -85,7 +89,8 @@ tile_textures = {
     mush3_tile: pygame.image.load(os.path.join(__location__,'images/mush3.png')),
     camp_tile: pygame.image.load(os.path.join(__location__,'images/campfire1.png')),
     heart_tile: pygame.image.load(os.path.join(__location__,'images/heart_icon.png')),
-    mush4_tile: pygame.image.load(os.path.join(__location__,'images/mush5.png'))
+    mush4_tile: pygame.image.load(os.path.join(__location__,'images/mush5.png')),
+    speed_tile: pygame.image.load(os.path.join(__location__,'images/speed_icon.png'))
 }
 
 # Frames for animation
@@ -93,6 +98,8 @@ water2_tile =  pygame.image.load(os.path.join(__location__,'images/pond2.png'))
 grass2_tile = pygame.image.load(os.path.join(__location__,'images/grass2.png'))
 camp2_tile = pygame.image.load(os.path.join(__location__,'images/campfire2.png'))
 
+# Main Menu Graphic
+main_menu_image = pygame.image.load(os.path.join(__location__,'images/startup_screen.png'))
 
 # Setup collectable resources
 resources = [mush1_tile,mush2_tile,mush3_tile,heart_tile]
@@ -145,6 +152,35 @@ r_row = random.randint(1,display_height-1)
 r_col = random.randint(1,display_width-1)
 tile_map[r_row][r_col] = camp_tile
 
+def main_menu():
+    menu_height = 700
+    menu_move = 0
+    game_begin = False
+
+    # Start playing main menu music
+    pygame.mixer.music.load(os.path.join(__location__, "audio/menu_music.mp3"))
+    pygame.mixer.music.set_volume(0.3)
+    pygame.mixer.music.play(-1)
+
+    while not game_begin:
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RETURN:
+                    game_begin = True
+
+        game_display.fill(black)
+        if menu_move % 20 == 0 and menu_height > 50:
+            menu_height -= 2
+        game_display.blit(main_menu_image,(20,menu_height))
+        pygame.display.update()
+        clock.tick(60)
+
+
 # Setup the main game loop
 def game_loop():
     player_pos = [0,0]
@@ -158,6 +194,12 @@ def game_loop():
     direction=0
     game_exit = False
     player_collide = 0
+
+    # Start playing game music
+    pygame.mixer.music.load(os.path.join(__location__, "audio/bgmusic1.mp3"))
+    pygame.mixer.music.set_volume(0.3)
+    pygame.mixer.music.play(-1)
+
 
     while not game_exit:
         # Check for player vs player collisions here
@@ -183,6 +225,13 @@ def game_loop():
             elif event.type == pygame.KEYDOWN:
                 current_tile = tile_map[math.floor(player_pos[1]/tile_size)][math.floor(player_pos[0]/tile_size)]
                 current_cat_tile = tile_map[math.floor(cat_pos[1]/tile_size)][math.floor(cat_pos[0]/tile_size)]
+
+                # Keep the corner tiles clear unless a crafted item is there
+                if tile_map[0][0] != 8 and tile_map[0][0] != 10:
+                    tile_map[0][0] = 0
+                
+                if tile_map[6][8] != 8 and tile_map[6][8] != 10:
+                    tile_map[6][8] = 0
 
                 if event.key == pygame.K_d and player_pos[0] < ((display_width * tile_size) - tile_size) and player_collide == 0:
                     player_pos[0] += step
@@ -222,9 +271,15 @@ def game_loop():
                     walk_sound.play()
                     walk=1
                 elif event.key == pygame.K_1 and inventory[mush1_tile] >= 5 and current_tile == 7:
-                    # Craft a heart using 5 mushrooms
+                    # Craft a heart using 5 type-A mushrooms
                     tile_map[0][0] = 8
                     inventory[mush1_tile] = inventory[mush1_tile] - 5
+                    craft_sound.play()
+                elif event.key == pygame.K_2 and inventory[mush2_tile] >= 5 and current_tile == 7:
+                    # Craft a speed bonus using 5 type-B mushroom
+                    tile_map[0][0] = 10
+                    inventory[mush2_tile] = inventory[mush2_tile] - 5
+                    craft_sound.play()
                 # Move cat left
                 elif event.key == pygame.K_LEFT and cat_pos[0] > 0 and player_collide == 0:
                     cat_pos[0] -= step
@@ -261,6 +316,7 @@ def game_loop():
                     # Craft a heart using 5 mushrooms
                     tile_map[6][8] = 8
                     inventory_cat[mush1_tile] = inventory_cat[mush1_tile] - 5
+                    craft_sound.play()
 
             # Player 2 tries to eat mushroom if it's on a mushroom tile
             py = math.floor(cat_pos[1]/tile_size)
@@ -421,6 +477,7 @@ def game_loop():
             inventory_cat[heart_tile] = 2
 
 
+main_menu()
 game_loop()
 pygame.quit()
 quit()
