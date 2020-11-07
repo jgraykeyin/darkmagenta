@@ -192,6 +192,10 @@ def game_loop():
     wind=0
     walk=0
     direction=0
+    speed_bonus_p1 = 0
+    speed_count_p1 = 200
+    speed_bonus_p2 = 0
+    speed_count_p2 = 200
     game_exit = False
     player_collide = 0
 
@@ -234,7 +238,7 @@ def game_loop():
                     tile_map[6][8] = 0
 
                 if event.key == pygame.K_d and player_pos[0] < ((display_width * tile_size) - tile_size) and player_collide == 0:
-                    player_pos[0] += step
+                    player_pos[0] += step + speed_bonus_p1
                     walk_sound.play()
                     walk=1
                     direction=0
@@ -245,7 +249,7 @@ def game_loop():
                     walk=1
                     direction=0
                 elif event.key == pygame.K_a and player_pos[0] > 0 and player_collide == 0:
-                    player_pos[0] -= step
+                    player_pos[0] -= step + speed_bonus_p1
                     walk_sound.play()
                     walk=1
                     direction=1
@@ -255,7 +259,7 @@ def game_loop():
                     walk=1
                     direction=1
                 elif event.key == pygame.K_w and player_pos[1] > 0 and player_collide == 0:
-                    player_pos[1] -= step
+                    player_pos[1] -= step + speed_bonus_p1
                     walk_sound.play()
                     walk=1
                 elif event.key == pygame.K_w and player_pos[1] > 0 and player_collide == 1:
@@ -263,7 +267,7 @@ def game_loop():
                     walk_sound.play()
                     walk=1
                 elif event.key == pygame.K_s and player_pos[1] < ((display_height * tile_size) - tile_size) and player_collide == 0:
-                    player_pos[1] += step
+                    player_pos[1] += step + speed_bonus_p1
                     walk_sound.play()
                     walk=1
                 elif event.key == pygame.K_s and player_pos[1] < ((display_height * tile_size) - tile_size) and player_collide == 1:
@@ -282,7 +286,7 @@ def game_loop():
                     craft_sound.play()
                 # Move cat left
                 elif event.key == pygame.K_LEFT and cat_pos[0] > 0 and player_collide == 0:
-                    cat_pos[0] -= step
+                    cat_pos[0] -= step + speed_bonus_p2
                     cat_walk_dir=0
                     cat_walking=1
                 elif event.key == pygame.K_LEFT and cat_pos[0] > 0 and player_collide == 1:
@@ -291,7 +295,7 @@ def game_loop():
                     cat_walking=1
                 # Move cat right
                 elif event.key == pygame.K_RIGHT and cat_pos[0] < ((display_width * tile_size) - tile_size) and player_collide == 0:
-                    cat_pos[0] += step
+                    cat_pos[0] += step + speed_bonus_p2
                     cat_walk_dir=1
                     cat_walking=1
                 elif event.key == pygame.K_RIGHT and cat_pos[0] < ((display_width * tile_size) - tile_size) and player_collide == 1:
@@ -300,22 +304,27 @@ def game_loop():
                     cat_walking=1
                 # Move cat down
                 elif event.key == pygame.K_DOWN and cat_pos[1] < ((display_height * tile_size) - tile_size) and player_collide == 0:
-                    cat_pos[1] += step
+                    cat_pos[1] += step + speed_bonus_p2
                     cat_walking=1
                 elif event.key == pygame.K_DOWN and cat_pos[1] < ((display_height * tile_size) - tile_size) and player_collide == 1:
                     cat_pos[1] -= step*2
                     cat_walking=1
                 # Move cat up
                 elif event.key == pygame.K_UP and cat_pos[1] > 0 and player_collide == 0:
-                    cat_pos[1] -= step
+                    cat_pos[1] -= step + speed_bonus_p2
                     cat_walking=1
                 elif event.key == pygame.K_UP and cat_pos[1] > 0 and player_collide == 1:
                     cat_pos[1] += step*2
                     cat_walking=1
-                elif event.key == pygame.K_RETURN and inventory_cat[mush1_tile] >= 5 and current_cat_tile == 7:
+                elif event.key == pygame.K_8 and inventory_cat[mush1_tile] >= 5 and current_cat_tile == 7:
                     # Craft a heart using 5 mushrooms
                     tile_map[6][8] = 8
                     inventory_cat[mush1_tile] = inventory_cat[mush1_tile] - 5
+                    craft_sound.play()
+                elif event.key == pygame.K_9 and inventory_cat[mush2_tile] >= 5 and current_cat_tile == 7:
+                    # Craft a speed bonus using 5 type-B mushroom
+                    tile_map[6][8] = 10
+                    inventory_cat[mush2_tile] = inventory_cat[mush2_tile] - 5
                     craft_sound.play()
 
             # Player 2 tries to eat mushroom if it's on a mushroom tile
@@ -334,6 +343,12 @@ def game_loop():
                 nom=1
                 tile_map[py][px] = spore_tile
                 poison_sound.play()
+            elif current_tile == 10:
+                # Enable speed bonus
+                tile_map[py][px] = blank_tile
+                speed_bonus_p2 = step
+                speed_count_p2 = 0
+                craft_sound.play()
 
             # Player 1 pick-up mushroom if it's available on current tile
             py = math.floor(player_pos[1]/tile_size)
@@ -349,6 +364,24 @@ def game_loop():
                 inventory[heart_tile] -= 1
                 tile_map[py][px] = spore_tile
                 poison_sound.play()
+            elif current_tile == 10:
+                # Enable speed bonus
+                tile_map[py][px] = blank_tile
+                speed_bonus_p1 = step
+                speed_count_p1 = 0
+                craft_sound.play()
+
+            # If the p1 speed bonus is enabled, set a timer so that it deactivates after 200 ticks
+            if speed_count_p1 < 200:
+                speed_count_p1 +=1
+            elif speed_count_p1 == 200:
+                speed_bonus_p1 = 0
+
+            # If the p2 speed bonus is enabled, set a timer so that it deactivates after 200 ticks
+            if speed_count_p2 < 200:
+                speed_count_p2 +=1
+            elif speed_count_p2 == 200:
+                speed_bonus_p2 = 0
 
             # Reset the walking flag for proper walk animation
             if event.type == pygame.KEYUP:
