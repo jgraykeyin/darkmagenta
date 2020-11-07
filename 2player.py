@@ -121,7 +121,7 @@ inventory_cat = {
     mush1_tile:0,
     mush2_tile:0,
     mush3_tile:0,
-    heart_tile:2
+    heart_tile:3
 }
 
 # Create a full map of blank tiles
@@ -155,6 +155,8 @@ r_row = random.randint(1,display_height-1)
 r_col = random.randint(1,display_width-1)
 tile_map[r_row][r_col] = camp_tile
 
+
+# Draw a crafting message onto the screen for a moment when players craft
 def craft_message(msg):
     font = pygame.font.Font(os.path.join(__location__,'PressStart2P-Regular.ttf'), 32)
     text = font.render(msg,True,magenta,light_cyan)
@@ -164,6 +166,8 @@ def craft_message(msg):
     pygame.display.update()
     time.sleep(1.5)
 
+
+# Spore magic is a craftable spell that turns most mushrooms into poison
 def spore_magic():
     for row in range(display_height):
         for col in range(display_width):
@@ -172,7 +176,6 @@ def spore_magic():
             if tile_map[row][col] in [3,4,6] and roll < 15:
                 tile_map[row][col] = 9
                     
-
 
 # Function to display the logo and prompt user to press enter to play
 def main_menu():
@@ -476,23 +479,23 @@ def game_loop():
         pygame.draw.rect(game_display,light_cyan,[0,(display_height*tile_size),display_width*tile_size,50])
 
         place_position = 130
-        player_title = inventory_font.render("PLAYER1:", True, dark_magenta, light_cyan)
+        player_title = inventory_font.render("P1:", True, dark_magenta, light_cyan)
         game_display.blit(player_title, (10,display_height*tile_size+20))
-        cpu_title = inventory_font.render("PLAYER2:", True, dark_magenta, light_cyan)
+        cpu_title = inventory_font.render("P2:", True, dark_magenta, light_cyan)
         game_display.blit(cpu_title, (460,display_height*tile_size+20))
 
         for item in resources:
-            game_display.blit(tile_textures[item], (place_position-20, display_height*tile_size-20))
+            game_display.blit(tile_textures[item], (place_position-90, display_height*tile_size-20))
             place_position += 1
             text_object = inventory_font.render(str(inventory[item]),True,magenta,light_cyan)
-            game_display.blit(text_object, (place_position+50,display_height*tile_size+20))
+            game_display.blit(text_object, (place_position-20,display_height*tile_size+20))
 
-            game_display.blit(tile_textures[item], (place_position+430, display_height*tile_size-20))
+            game_display.blit(tile_textures[item], (place_position+360, display_height*tile_size-20))
             place_position += 1
             text_object = inventory_font.render(str(inventory_cat[item]),True, magenta,light_cyan)
-            game_display.blit(text_object, (place_position+500,display_height*tile_size+20))
+            game_display.blit(text_object, (place_position+430,display_height*tile_size+20))
 
-            place_position += 60
+            place_position += 80
 
         # Animate cat when it eats mushroom
         if nom >= 1:
@@ -546,7 +549,7 @@ def game_loop():
             inventory[mush1_tile] = 0
             inventory[mush2_tile] = 0
             inventory[mush3_tile] = 0
-            inventory[heart_tile] = 2
+            inventory[heart_tile] = 3
 
         # Check the cat's health, game over/reset if it's zero
         # TODO: Attach the end-game sequence here
@@ -555,7 +558,7 @@ def game_loop():
             inventory_cat[mush1_tile] = 0
             inventory_cat[mush2_tile] = 0
             inventory_cat[mush3_tile] = 0
-            inventory_cat[heart_tile] = 2
+            inventory_cat[heart_tile] = 3
 
 
 main_menu()
