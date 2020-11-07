@@ -107,6 +107,7 @@ camp2_tile = pygame.image.load(os.path.join(__location__,'images/campfire2.png')
 
 # Main Menu Graphic
 main_menu_image = pygame.image.load(os.path.join(__location__,'images/startup_screen.png'))
+magenta_fly = pygame.image.load(os.path.join(__location__,'images/magenta_fly.png'))
 
 # Setup collectable resources
 resources = [mush1_tile,mush2_tile,mush3_tile,heart_tile]
@@ -186,6 +187,7 @@ def main_menu():
     menu_height = 700
     menu_move = 0
     shing = 0
+    shing_position = -900
     game_begin = False
 
     # Start playing main menu music
@@ -210,9 +212,15 @@ def main_menu():
         elif menu_height <= 50 and shing == 0:
             # Make that shiiiing sound that NES games would do on the title screens
             shing_menu_sound.play()
+            game_display.fill(light_cyan)
             shing=1
-
+        
         game_display.blit(main_menu_image,(20,menu_height))
+
+        if shing == 1:
+            shing_position += 40
+            game_display.blit(magenta_fly,(shing_position,360))
+
         pygame.display.update()
         clock.tick(60)
 
