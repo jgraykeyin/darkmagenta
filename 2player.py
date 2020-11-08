@@ -90,6 +90,8 @@ camp_tile = 7
 heart_tile = 8
 mush4_tile = 9
 speed_tile = 10
+exitfire_tile = 11
+exitdoor_tile = 12
 
 tile_textures = {
     blank_tile: pygame.image.load(os.path.join(__location__,'images/blank_tile.png')),
@@ -102,13 +104,16 @@ tile_textures = {
     camp_tile: pygame.image.load(os.path.join(__location__,'images/campfire1.png')),
     heart_tile: pygame.image.load(os.path.join(__location__,'images/heart_icon.png')),
     mush4_tile: pygame.image.load(os.path.join(__location__,'images/mush5.png')),
-    speed_tile: pygame.image.load(os.path.join(__location__,'images/speed_icon.png'))
+    speed_tile: pygame.image.load(os.path.join(__location__,'images/speed_icon.png')),
+    exitfire_tile: pygame.image.load(os.path.join(__location__,'images/exit_fire1.png')),
+    exitdoor_tile: pygame.image.load(os.path.join(__location__,'images/door_exit.png'))
 }
 
 # Frames for animation
 water2_tile =  pygame.image.load(os.path.join(__location__,'images/pond2.png'))
 grass2_tile = pygame.image.load(os.path.join(__location__,'images/grass2.png'))
 camp2_tile = pygame.image.load(os.path.join(__location__,'images/campfire2.png'))
+exitfire2_tile = pygame.image.load(os.path.join(__location__,'images/exit_fire2.png'))
 
 # Main Menu Graphic
 main_menu_image = pygame.image.load(os.path.join(__location__,'images/startup_screen.png'))
@@ -117,16 +122,16 @@ magenta_fly = pygame.image.load(os.path.join(__location__,'images/magenta_fly.pn
 # Setup collectable resources
 resources = [mush1_tile,mush2_tile,mush3_tile,heart_tile]
 
-# Initialize inventory
+# Initialize P1 inventory
 inventory_font = pygame.font.Font(os.path.join(__location__,'PressStart2P-Regular.ttf'),16)
 inventory = {
     mush1_tile:0,
     mush2_tile:0,
     mush3_tile:0,
-    heart_tile:2
+    heart_tile:3
 }
 
-# Initalize Cat's inventory
+# Initalize P2 inventory
 inventory_cat = {
     mush1_tile:0,
     mush2_tile:0,
@@ -326,22 +331,41 @@ def game_loop():
                     player_pos[1] -= step*2
                     hit_sound.play()
                     walk=1
-                elif event.key == pygame.K_1 and inventory[mush1_tile] >= 5 and current_tile == 7:
+                elif event.key == pygame.K_1 and inventory[mush1_tile] >= 5 and inventory[mush1_tile] < 10 and current_tile == 7:
                     # Craft a heart using 5 type-A mushrooms
                     tile_map[0][0] = 8
                     inventory[mush1_tile] = inventory[mush1_tile] - 5
                     craft_sound.play()
                     craft_message("P1 CRAFTED HEART!")
-                elif event.key == pygame.K_2 and inventory[mush2_tile] >= 5 and current_tile == 7:
+                elif event.key == pygame.K_1 and inventory[mush1_tile] >= 10 and current_tile == 7:
+                    # Craft an exit piece 1 using 10 mushrooms
+                    tile_map[0][1] = 11
+                    inventory[mush1_tile] = inventory[mush1_tile] - 10
+                    craft_sound.play()
+                    craft_message("P1 CRAFTED PORTAL PIECE 1!")
+                elif event.key == pygame.K_2 and inventory[mush2_tile] >= 5 and inventory[mush2_tile] < 10 and current_tile == 7:
                     # Craft a speed bonus using 5 type-B mushroom
                     tile_map[0][0] = 10
                     inventory[mush2_tile] = inventory[mush2_tile] - 5
                     craft_sound.play()
                     craft_message("P1 CRAFTED SPEED BONUS!")
-                elif event.key == pygame.K_3 and inventory[mush3_tile] >= 5 and current_tile == 7:
+                elif event.key == pygame.K_2 and inventory[mush2_tile] >= 10 and current_tile == 7:
+                    # Craft an exit piece 1 using 10 mushrooms
+                    tile_map[1][0] = 11
+                    inventory[mush2_tile] = inventory[mush2_tile] - 10
+                    craft_sound.play()
+                    craft_message("P1 CRAFTED PORTAL PIECE 2!")
+                elif event.key == pygame.K_3 and inventory[mush3_tile] >= 5 and inventory[mush3_tile] < 10 and current_tile == 7:
                     craft_sound.play()
                     craft_message("P1 CRAFTED SPORE MAGIC!")
+                    inventory[mush3_tile] = inventory[mush3_tile] - 5
                     spore_magic()
+                elif event.key == pygame.K_3 and inventory[mush3_tile] >= 10 and current_tile == 7:
+                    # Craft an exit piece 1 using 10 mushrooms
+                    tile_map[1][1] = 12
+                    inventory[mush3_tile] = inventory[mush3_tile] - 10
+                    craft_sound.play()
+                    craft_message("P1 CRAFTED PORTAL PIECE 3!")
                                 
                 # Move cat left
                 elif event.key == pygame.K_LEFT and cat_pos[0] > 0 and player_collide == 0:
@@ -379,22 +403,42 @@ def game_loop():
                     cat_pos[1] += step*2
                     cat_walking=1
                     hit_sound.play()
-                elif event.key == pygame.K_8 and inventory_cat[mush1_tile] >= 5 and current_cat_tile == 7:
+                elif event.key == pygame.K_8 and inventory_cat[mush1_tile] >= 5 and inventory_cat[mush1_tile] < 10 and current_cat_tile == 7:
                     # Craft a heart using 5 mushrooms
                     tile_map[6][8] = 8
                     inventory_cat[mush1_tile] = inventory_cat[mush1_tile] - 5
                     craft_sound.play()
                     craft_message("P2 CRAFTED HEART!")
-                elif event.key == pygame.K_9 and inventory_cat[mush2_tile] >= 5 and current_cat_tile == 7:
+                elif event.key == pygame.K_8 and inventory_cat[mush1_tile] >= 10 and current_cat_tile == 7:
+                    # Craft an Exit Piece 1 using 10 mushrooms
+                    tile_map[6][7] = 11
+                    inventory_cat[mush1_tile] = inventory_cat[mush1_tile] - 10
+                    craft_sound.play()
+                    craft_message("P2 CRAFTED PORTAL PIECE 1!")
+                elif event.key == pygame.K_9 and inventory_cat[mush2_tile] >= 5 and inventory_cat[mush2_tile] < 10 and current_cat_tile == 7:
                     # Craft a speed bonus using 5 type-B mushroom
                     tile_map[6][8] = 10
                     inventory_cat[mush2_tile] = inventory_cat[mush2_tile] - 5
                     craft_sound.play()
                     craft_message("P2 CRAFTED SPEED BONUS!")
-                elif event.key == pygame.K_0 and inventory_cat[mush3_tile] >= 5 and current_cat_tile == 7:
+                elif event.key == pygame.K_9 and inventory_cat[mush2_tile] >= 10  and current_cat_tile == 7:
+                    # Craft an exit piece 2 using 10 mushrooms
+                    tile_map[5][8] = 11
+                    inventory_cat[mush2_tile] = inventory_cat[mush2_tile] - 10
+                    craft_sound.play()
+                    craft_message("P2 CRAFTED PORTAL PIECE 2!")
+                elif event.key == pygame.K_0 and inventory_cat[mush3_tile] >= 5 and inventory_cat[mush3_tile] < 10 and current_cat_tile == 7:
                     craft_sound.play()
                     craft_message("P2 CRAFTED SPORE MAGIC!")
+                    inventory_cat[mush3_tile] = inventory_cat[mush3_tile] - 5
                     spore_magic()
+                elif event.key == pygame.K_0 and inventory_cat[mush3_tile] >= 10 and current_cat_tile == 7:
+                    # Craft an exit piece 3 using 10 mushrooms
+                    tile_map[5][7] = 12
+                    inventory_cat[mush3_tile] = inventory_cat[mush3_tile] - 10
+                    craft_sound.play()
+                    craft_message("P2 CRAFTED PORTAL PIECE 3!")
+
 
             # Player 2 tries to eat mushroom if it's on a mushroom tile
             py = math.floor(cat_pos[1]/tile_size)
@@ -425,6 +469,8 @@ def game_loop():
                 inventory_cat[mush1_tile] = 0
                 inventory_cat[mush2_tile] = 0
                 inventory_cat[mush3_tile] = 0
+            elif current_tile == 12:
+                game_exit()
 
             # Player 1 pick-up mushroom if it's available on current tile
             py = math.floor(player_pos[1]/tile_size)
@@ -454,6 +500,8 @@ def game_loop():
                 inventory[mush1_tile] = 0
                 inventory[mush2_tile] = 0
                 inventory[mush3_tile] = 0
+            elif current_tile == 12:
+                game_exit()
 
             # If the p1 speed bonus is enabled, set a timer so that it deactivates after 200 ticks
             if speed_count_p1 < 200:
@@ -496,6 +544,8 @@ def game_loop():
                         game_display.blit(tile_textures[tile_map[row][column]],(column*tile_size,row*tile_size))
                     elif tile_map[row][column] == 7 and frame_count > 50:
                         game_display.blit(camp2_tile,(column*tile_size,row*tile_size))
+                    elif tile_map[row][column] == 11 and frame_count > 50:
+                        game_display.blit(exitfire2_tile,(column*tile_size,row*tile_size))
                     # Check for wind to animate grass
                     elif tile_map[row][column] == 1 and wind == 1:
                         game_display.blit(grass2_tile,(column*tile_size,row*tile_size))
