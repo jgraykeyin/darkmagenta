@@ -235,6 +235,9 @@ def main_menu():
         pygame.display.update()
         clock.tick(60)
 
+def game_over():
+    print("GAME OVER")
+
 
 # Setup the main game loop
 def game_loop():
@@ -470,7 +473,8 @@ def game_loop():
                 inventory_cat[mush2_tile] = 0
                 inventory_cat[mush3_tile] = 0
             elif current_tile == 12:
-                game_exit()
+                craft_message("P2 FOUND THE EXIT!")
+                game_exit == True
 
             # Player 1 pick-up mushroom if it's available on current tile
             py = math.floor(player_pos[1]/tile_size)
@@ -501,7 +505,8 @@ def game_loop():
                 inventory[mush2_tile] = 0
                 inventory[mush3_tile] = 0
             elif current_tile == 12:
-                game_exit()
+                craft_message("P1 FOUND THE EXIT!")
+                game_exit == True
 
             # If the p1 speed bonus is enabled, set a timer so that it deactivates after 200 ticks
             if speed_count_p1 < 200:
@@ -638,23 +643,18 @@ def game_loop():
         # Check the player's health, if it's game over reset the inventory 
         # TODO: Setup an end-game sequence
         if inventory[heart_tile] < 1:
-            player_pos = [0,0]
-            inventory[mush1_tile] = 0
-            inventory[mush2_tile] = 0
-            inventory[mush3_tile] = 0
-            inventory[heart_tile] = 3
+            craft_message("P1 LOST BY POISON!")
+            game_exit = True
 
         # Check the cat's health, game over/reset if it's zero
         # TODO: Attach the end-game sequence here
         if inventory_cat[heart_tile] < 1:
-            cat_pos = [(display_width*tile_size)-tile_size,(display_height*tile_size)-tile_size]
-            inventory_cat[mush1_tile] = 0
-            inventory_cat[mush2_tile] = 0
-            inventory_cat[mush3_tile] = 0
-            inventory_cat[heart_tile] = 3
+            craft_message("P2 LOST BY POISON!")
+            game_exit = True
 
 
 main_menu()
 game_loop()
+game_over()
 pygame.quit()
 quit()
