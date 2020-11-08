@@ -1,7 +1,7 @@
 # Project Dark Magenta by Justin Gray.
 # Pygame development project for a two player sprite-based collect & craft game.
 # Players are controlled using A,W,S,D (player 1) and Left,Right,Up,Down (player 2).
-# Each collectable mushroom has 3 levels of crafting, poison mushrooms reduce HP by 1.
+# Each collectable mushroom has 2 levels of crafting, poison mushrooms reduce HP by 1.
 #
 # Music by 'sawsquarenoise` from the Towel Defense OST (CC BY 4.0 license)
 # https://freemusicarchive.org/music/sawsquarenoise/
@@ -42,18 +42,23 @@ pygame.display.set_caption('Dark Magenta')
 # Initialize the game clock
 clock = pygame.time.Clock()
 
-# Load character sprites
+# Load P1 sprites
 player = pygame.image.load(os.path.join(__location__,'images/magenta_start.png'))
 player_flip = pygame.transform.flip(player,1,0)
 player_walk = pygame.image.load(os.path.join(__location__,'images/magenta_walk.png'))
 player_walk_flip = pygame.transform.flip(player_walk,1,0)
-# Load the cat sprites
+player_dmg = pygame.image.load(os.path.join(__location__,'images/p1_hit.png'))
+player_dmg_flip = pygame.transform.flip(player_dmg,1,0)
+
+# Load P2 sprites
 cat_main = pygame.image.load(os.path.join(__location__,'images/cat_main.png'))
 cat_main_flip = pygame.transform.flip(cat_main,1,0)
 cat_eat = pygame.image.load(os.path.join(__location__,'images/cat_eat.png'))
 cat_eat_flip = pygame.transform.flip(cat_eat,1,0)
 cat_walk = pygame.image.load(os.path.join(__location__,'images/cat_walk.png'))
 cat_walk_flip = pygame.transform.flip(cat_walk,1,0)
+cat_dmg = pygame.image.load(os.path.join(__location__,'images/p2_hit.png'))
+cat_dmg_flip = pygame.transform.flip(cat_dmg,1,0)
 
 # Load in sound effects
 walk_sound = pygame.mixer.Sound(os.path.join(__location__,'audio/sound_walk.wav'))
@@ -63,13 +68,13 @@ get_item_sound.set_volume(0.4)
 cat_pickup_sound = pygame.mixer.Sound(os.path.join(__location__,'audio/cat_pickup.mp3'))
 cat_pickup_sound.set_volume(0.4)
 poison_sound = pygame.mixer.Sound(os.path.join(__location__,'audio/poison.mp3'))
-poison_sound.set_volume(0.4)
+poison_sound.set_volume(0.2)
 craft_sound = pygame.mixer.Sound(os.path.join(__location__,'audio/craftsound.mp3'))
 craft_sound.set_volume(0.4)
 water_sound = pygame.mixer.Sound(os.path.join(__location__,'audio/water_dmg.mp3'))
-water_sound.set_volume(0.3)
+water_sound.set_volume(0.2)
 hit_sound = pygame.mixer.Sound(os.path.join(__location__,'audio/hit.wav'))
-hit_sound.set_volume(0.3)
+hit_sound.set_volume(0.4)
 shing_menu_sound = pygame.mixer.Sound(os.path.join(__location__,'audio/shining.wav'))
 shing_menu_sound.set_volume(0.3)
 
@@ -169,7 +174,7 @@ def craft_message(msg):
     textRect.center = ((display_width*tile_size) / 2, (display_height*tile_size) / 2)
     game_display.blit(text,textRect)
     pygame.display.update()
-    time.sleep(1.5)
+    time.sleep(1)
 
 
 # Spore magic is a craftable spell that turns most mushrooms into poison
@@ -184,6 +189,7 @@ def spore_magic():
 
 # Function to display the logo and prompt user to press enter to play
 def main_menu():
+    # Start the menu graphic at the bottom of the screen so we can scroll it upwards
     menu_height = 700
     menu_move = 0
     shing = 0
@@ -240,6 +246,8 @@ def game_loop():
     speed_count_p1 = 200
     speed_bonus_p2 = 0
     speed_count_p2 = 200
+    p1_dmg = 0
+    p2_dmg = 0
     game_exit = False
     player_collide = 0
 
@@ -400,6 +408,7 @@ def game_loop():
                 nom=1
             elif current_tile == 9:
                 # Poison mushroom, it reduces the player's HP by 1
+                p2_dmg = 1
                 inventory_cat[heart_tile] -= 1
                 nom=1
                 tile_map[py][px] = spore_tile
@@ -428,9 +437,11 @@ def game_loop():
                 tile_map[py][px] = spore_tile
                 get_item_sound.play()
             elif current_tile == 9:
+                # Player hits a poison mushroom and loses 1 HP
                 inventory[heart_tile] -= 1
                 tile_map[py][px] = spore_tile
                 poison_sound.play()
+                p1_dmg = 1
             elif current_tile == 10:
                 # Enable speed bonus
                 tile_map[py][px] = blank_tile
@@ -532,7 +543,11 @@ def game_loop():
             cat_walking=0
 
         # Render the cat sprite depending on direction and current action
-        if cat_walk_dir == 0 and nom == 0 and cat_walking == 0:
+        if p2_dmg == 1 and cat_walk_dir == 0:
+            game_display.blit(cat_dmg_flip,(cat_pos[0],cat_pos[1]))
+        elif p2_dmg == 1 and cat_walk_dir == 1:
+            game_display.blit(cat_dmg,(cat_pos[0],cat_pos[1]))
+        elif cat_walk_dir == 0 and nom == 0 and cat_walking == 0:
             game_display.blit(cat_main,(cat_pos[0],cat_pos[1]))
         elif cat_walk_dir == 0 and nom == 0 and cat_walking >= 1:
             game_display.blit(cat_walk,(cat_pos[0],cat_pos[1]))
@@ -546,7 +561,11 @@ def game_loop():
             game_display.blit(cat_eat_flip,(cat_pos[0],cat_pos[1]))
 
         # Render the player character
-        if walk == 0 and direction == 0:
+        if p1_dmg == 1 and direction == 0:
+            game_display.blit(player_dmg,(player_pos[0],player_pos[1]))
+        elif p1_dmg == 1 and direction == 1:
+            game_display.blit(player_dmg_flip,(player_pos[0],player_pos[1]))
+        elif walk == 0 and direction == 0:
             game_display.blit(player,(player_pos[0],player_pos[1]))
         elif walk == 0 and direction == 1:
             game_display.blit(player_flip,(player_pos[0],player_pos[1]))
@@ -560,6 +579,8 @@ def game_loop():
         clock.tick(60)
         if frame_count > 100:
             frame_count = 0
+            p1_dmg = 0
+            p2_dmg = 0
         wind_roll = random.randint(0,40)
         if wind_roll > 39:
             wind = 0
