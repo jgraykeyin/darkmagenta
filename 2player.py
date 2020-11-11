@@ -3,7 +3,7 @@
 # Players are controlled using A,W,S,D (player 1) and Left,Right,Up,Down (player 2).
 # Each collectable mushroom has 2 levels of crafting, poison mushrooms reduce HP by 1.
 #
-# Music by 'sawsquarenoise` from the Towel Defense OST (CC BY 4.0 license)
+# Music by 'sawsquarenoise` (CC BY 4.0 license)
 # https://freemusicarchive.org/music/sawsquarenoise/
 # 
 # Sound effects from freesound.org
@@ -34,6 +34,10 @@ tile_size = 96
 display_width = 9
 display_height = 7
 step=24
+
+# Player Scores
+score_p1 = 0
+score_p2 = 0
 
 # Setup the main game display
 game_display = pygame.display.set_mode((display_width*tile_size,display_height*tile_size+50))
@@ -125,6 +129,14 @@ resources = [mush1_tile,mush2_tile,mush3_tile,heart_tile]
 # Initialize P1 inventory
 inventory_font = pygame.font.Font(os.path.join(__location__,'PressStart2P-Regular.ttf'),16)
 
+def scorePoint(player):
+    global score_p1
+    global score_p2
+
+    if player == "p1":
+        score_p1 += 1
+    elif player == "p2":
+        score_p2 += 1
 
 def generateMap():
 
@@ -168,7 +180,6 @@ def resetInventory():
         mush3_tile:0,
         heart_tile:3
     }
-
     return inventory
 
 # Draw a crafting message onto the screen for a moment when players craft
@@ -183,7 +194,7 @@ def craft_message(msg):
 
 
 # Spore magic is a craftable spell that turns most mushrooms into poison
-def spore_magic():
+def spore_magic(tile_map):
     for row in range(display_height):
         for col in range(display_width):
             # Chance of turning every mushroom into a poison mushroom
@@ -237,9 +248,14 @@ def main_menu():
 
 def game_over():
     game_end_state = True
+    
+    # Start playing game-over music
+    pygame.mixer.music.load(os.path.join(__location__, "audio/game_end.mp3"))
+    pygame.mixer.music.set_volume(0.3)
+    pygame.mixer.music.play(1)
+
     while game_end_state:
-        print("GAME OVER")
-        
+
         game_display.fill(black)
 
         for event in pygame.event.get():
@@ -250,6 +266,18 @@ def game_over():
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_RETURN:
                     game_end_state = False
+
+        gfont = pygame.font.Font(os.path.join(__location__,'PressStart2P-Regular.ttf'),24)
+
+        game_over_title = gfont.render("Game Over!", True, dark_magenta, light_cyan)
+        p1_score = gfont.render("P1 Score: {}".format(score_p1),True, dark_magenta, light_cyan)
+        p2_score = gfont.render("P2 Score: {}".format(score_p2),True, dark_magenta, light_cyan)
+
+        w_center = 300
+        game_display.blit(game_over_title, (w_center,260))
+        game_display.blit(p1_score, (w_center,340))
+        game_display.blit(p2_score, (w_center,380))
+
 
         pygame.display.update()
 
@@ -383,7 +411,7 @@ def game_loop():
                     craft_sound.play()
                     craft_message("P1 CRAFTED SPORE MAGIC!")
                     inventory[mush3_tile] = inventory[mush3_tile] - 5
-                    spore_magic()
+                    spore_magic(tile_map)
                 elif event.key == pygame.K_3 and inventory[mush3_tile] >= 10 and current_tile == 7:
                     # Craft an exit piece 1 using 10 mushrooms
                     tile_map[1][1] = 12
@@ -455,7 +483,7 @@ def game_loop():
                     craft_sound.play()
                     craft_message("P2 CRAFTED SPORE MAGIC!")
                     inventory_cat[mush3_tile] = inventory_cat[mush3_tile] - 5
-                    spore_magic()
+                    spore_magic(tile_map)
                 elif event.key == pygame.K_0 and inventory_cat[mush3_tile] >= 10 and current_cat_tile == 7:
                     # Craft an exit piece 3 using 10 mushrooms
                     tile_map[5][7] = 12
@@ -666,12 +694,14 @@ def game_loop():
         if inventory[heart_tile] < 1:
             craft_message("P1 LOST BY POISON!")
             game_exit = True
+            scorePoint("p2")
 
         # Check the cat's health, game over/reset if it's zero
         # TODO: Attach the end-game sequence here
         if inventory_cat[heart_tile] < 1:
             craft_message("P2 LOST BY POISON!")
             game_exit = True
+            scorePoint("p1")
 
 
 main_menu()
