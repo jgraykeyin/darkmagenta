@@ -124,52 +124,52 @@ resources = [mush1_tile,mush2_tile,mush3_tile,heart_tile]
 
 # Initialize P1 inventory
 inventory_font = pygame.font.Font(os.path.join(__location__,'PressStart2P-Regular.ttf'),16)
-inventory = {
-    mush1_tile:0,
-    mush2_tile:0,
-    mush3_tile:0,
-    heart_tile:3
-}
 
-# Initalize P2 inventory
-inventory_cat = {
-    mush1_tile:0,
-    mush2_tile:0,
-    mush3_tile:0,
-    heart_tile:3
-}
 
-# Create a full map of blank tiles
-tile_map = [[blank_tile for w in range(display_width)] for h in range(display_height)]
+def generateMap():
 
-# Generate the map
-for row in range(display_height):
-    for col in range(display_width):
-        num = random.randint(0,20)
-        if num == 0:
-            tile = blank_tile
-        elif num in [1,2,3,4,5,6,7,8]:
-            tile = grass1_tile
-        elif num == 9:
-            tile = water_tile
-        elif num in [10,11,12]:
-            tile = mush1_tile
-        elif num in [13,14,15]:
-            tile = mush2_tile
-        elif num in [16,17,18]:
-            tile = mush3_tile
-        elif num in [19,20]:
-            tile = mush4_tile
-        tile_map[row][col] = tile
-# Clear corner tiles for player & cat
-tile_map[0][0] = 0
-tile_map[6][8] = 0
+    # Create a full map of blank tiles
+    tile_map = [[blank_tile for w in range(display_width)] for h in range(display_height)]
 
-# Select a random tile and place the campfire
-r_row = random.randint(1,display_height-1)
-r_col = random.randint(1,display_width-1)
-tile_map[r_row][r_col] = camp_tile
+    # Generate the map
+    for row in range(display_height):
+        for col in range(display_width):
+            num = random.randint(0,20)
+            if num == 0:
+                tile = blank_tile
+            elif num in [1,2,3,4,5,6,7,8]:
+                tile = grass1_tile
+            elif num == 9:
+                tile = water_tile
+            elif num in [10,11,12]:
+                tile = mush1_tile
+            elif num in [13,14,15]:
+                tile = mush2_tile
+            elif num in [16,17,18]:
+                tile = mush3_tile
+            elif num in [19,20]:
+                tile = mush4_tile
+            tile_map[row][col] = tile
+    # Clear corner tiles for player & cat
+    tile_map[0][0] = 0
+    tile_map[6][8] = 0
 
+    # Select a random tile and place the campfire
+    r_row = random.randint(1,display_height-1)
+    r_col = random.randint(1,display_width-1)
+    tile_map[r_row][r_col] = camp_tile
+
+    return tile_map
+
+def resetInventory():
+    inventory = {
+        mush1_tile:0,
+        mush2_tile:0,
+        mush3_tile:0,
+        heart_tile:3
+    }
+
+    return inventory
 
 # Draw a crafting message onto the screen for a moment when players craft
 def craft_message(msg):
@@ -236,13 +236,34 @@ def main_menu():
         clock.tick(60)
 
 def game_over():
-    print("GAME OVER")
+    game_end_state = True
+    while game_end_state:
+        print("GAME OVER")
+        
+        game_display.fill(black)
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RETURN:
+                    game_end_state = False
+
+        pygame.display.update()
+
 
 
 # Setup the main game loop
 def game_loop():
     player_pos = [0,0]
     cat_pos = [(display_width*tile_size)-tile_size,(display_height*tile_size)-tile_size]
+
+    inventory = resetInventory()
+    inventory_cat = resetInventory()
+    tile_map = generateMap()
+
     cat_walk_dir = 0
     cat_walking = 0
     nom=0
@@ -654,7 +675,10 @@ def game_loop():
 
 
 main_menu()
-game_loop()
-game_over()
+
+while True:
+    game_loop()
+    game_over()
+
 pygame.quit()
 quit()
