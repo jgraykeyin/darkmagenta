@@ -75,8 +75,8 @@ poison_sound = pygame.mixer.Sound(os.path.join(__location__,'audio/poison.mp3'))
 poison_sound.set_volume(0.2)
 craft_sound = pygame.mixer.Sound(os.path.join(__location__,'audio/craftsound.mp3'))
 craft_sound.set_volume(0.4)
-water_sound = pygame.mixer.Sound(os.path.join(__location__,'audio/water_dmg.mp3'))
-water_sound.set_volume(0.2)
+water_sound = pygame.mixer.Sound(os.path.join(__location__,'audio/water_dmg2.wav'))
+water_sound.set_volume(0.1)
 hit_sound = pygame.mixer.Sound(os.path.join(__location__,'audio/hit.wav'))
 hit_sound.set_volume(0.4)
 shing_menu_sound = pygame.mixer.Sound(os.path.join(__location__,'audio/shining.wav'))
@@ -269,14 +269,16 @@ def game_over():
 
         gfont = pygame.font.Font(os.path.join(__location__,'PressStart2P-Regular.ttf'),24)
 
-        game_over_title = gfont.render("Game Over!", True, dark_magenta, light_cyan)
+        game_over_title = gfont.render("Match Over!", True, dark_magenta, light_cyan)
         p1_score = gfont.render("P1 Score: {}".format(score_p1),True, dark_magenta, light_cyan)
         p2_score = gfont.render("P2 Score: {}".format(score_p2),True, dark_magenta, light_cyan)
+        play_again = gfont.render("Press [ENTER] to play again",True, dark_magenta, light_cyan)
 
         w_center = 300
         game_display.blit(game_over_title, (w_center,260))
         game_display.blit(p1_score, (w_center,340))
         game_display.blit(p2_score, (w_center,380))
+        game_display.blit(play_again, (w_center-180,440))
 
 
         pygame.display.update()
@@ -354,6 +356,7 @@ def game_loop():
                 # Check for a player collision and knock the character back
                 if event.key == pygame.K_d and player_pos[0] < ((display_width * tile_size) - tile_size) and player_collide == 1:
                     player_pos[0] -= step*2
+                    cat_pos[0] += step
                     hit_sound.play()
                     walk=1
                     direction=0
@@ -364,6 +367,7 @@ def game_loop():
                     direction=1
                 elif event.key == pygame.K_a and player_pos[0] > 0 and player_collide == 1:
                     player_pos[0] += step*2
+                    cat_pos[0] -= step
                     hit_sound.play()
                     walk=1
                     direction=1
@@ -373,6 +377,7 @@ def game_loop():
                     walk=1
                 elif event.key == pygame.K_w and player_pos[1] > 0 and player_collide == 1:
                     player_pos[1] += step*2
+                    cat_pos[1] -= step
                     hit_sound.play()
                     walk=1
                 elif event.key == pygame.K_s and player_pos[1] < ((display_height * tile_size) - tile_size) and player_collide == 0:
@@ -381,6 +386,7 @@ def game_loop():
                     walk=1
                 elif event.key == pygame.K_s and player_pos[1] < ((display_height * tile_size) - tile_size) and player_collide == 1:
                     player_pos[1] -= step*2
+                    cat_pos[1] += step
                     hit_sound.play()
                     walk=1
                 elif event.key == pygame.K_1 and inventory[mush1_tile] >= 5 and inventory[mush1_tile] < 10 and current_tile == 7:
@@ -426,6 +432,7 @@ def game_loop():
                     cat_walking=1
                 elif event.key == pygame.K_LEFT and cat_pos[0] > 0 and player_collide == 1:
                     cat_pos[0] += step*2
+                    player_pos[0] -= step
                     cat_walk_dir=0
                     cat_walking=1
                     hit_sound.play()
@@ -436,6 +443,7 @@ def game_loop():
                     cat_walking=1
                 elif event.key == pygame.K_RIGHT and cat_pos[0] < ((display_width * tile_size) - tile_size) and player_collide == 1:
                     cat_pos[0] -= step*2
+                    player_pos[0] += step
                     cat_walk_dir=1
                     cat_walking=1
                     hit_sound.play()
@@ -445,6 +453,7 @@ def game_loop():
                     cat_walking=1
                 elif event.key == pygame.K_DOWN and cat_pos[1] < ((display_height * tile_size) - tile_size) and player_collide == 1:
                     cat_pos[1] -= step*2
+                    player_pos[1] += step
                     cat_walking=1
                     hit_sound.play()
                 # Move cat up
@@ -453,6 +462,7 @@ def game_loop():
                     cat_walking=1
                 elif event.key == pygame.K_UP and cat_pos[1] > 0 and player_collide == 1:
                     cat_pos[1] += step*2
+                    player_pos[1] -= step
                     cat_walking=1
                     hit_sound.play()
                 elif event.key == pygame.K_8 and inventory_cat[mush1_tile] >= 5 and inventory_cat[mush1_tile] < 10 and current_cat_tile == 7:
@@ -517,7 +527,8 @@ def game_loop():
                 craft_sound.play()
             elif current_tile == 2:
                 # Water damage
-                walk_sound.play()
+                p2_dmg = 1
+                water_sound.play()
                 inventory_cat[mush1_tile] = 0
                 inventory_cat[mush2_tile] = 0
                 inventory_cat[mush3_tile] = 0
@@ -549,6 +560,7 @@ def game_loop():
                 craft_sound.play()
             elif current_tile == 2:
                 # Water Damage
+                p1_dmg = 1
                 water_sound.play()
                 inventory[mush1_tile] = 0
                 inventory[mush2_tile] = 0
