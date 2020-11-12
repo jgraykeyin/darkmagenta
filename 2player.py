@@ -556,6 +556,27 @@ def game_loop():
                     craft_sound.play()
                     craft_message("P2 CRAFTED PORTAL PIECE 3!")
 
+            # Check the player locations to make sure they haven't been knocked off the surface
+            if player_pos[0] > (display_width * tile_size) - tile_size:
+                player_pos[0] = (display_width * tile_size) - tile_size
+            elif player_pos[0] < 0:
+                player_pos[0] = 0
+
+            if player_pos[1] > (display_height * tile_size) - tile_size:
+                player_pos[1] = (display_height * tile_size) - tile_size
+            elif player_pos[1] < 0:
+                player_pos[1] = 0
+
+            if cat_pos[0] > (display_width * tile_size) - tile_size:
+                cat_pos[0] = (display_width * tile_size) - tile_size
+            elif cat_pos[0] < 0:
+                cat_pos[0] = 0
+
+            if cat_pos[1] > (display_height * tile_size) - tile_size:
+                cat_pos[1] = (display_height * tile_size) - tile_size
+            elif cat_pos[1] < 0:
+                cat_pos[1] = 0            
+
 
             # Player 2 tries to eat mushroom if it's on a mushroom tile
             py = math.floor(cat_pos[1]/tile_size)
@@ -761,14 +782,12 @@ def game_loop():
             wind = 0
 
         # Check the player's health, if it's game over reset the inventory 
-        # TODO: Setup an end-game sequence
         if inventory[heart_tile] < 1:
             craft_message("P1 LOST BY POISON!")
             game_exit = True
             scorePoint("p2",1)
 
         # Check the cat's health, game over/reset if it's zero
-        # TODO: Attach the end-game sequence here
         if inventory_cat[heart_tile] < 1:
             craft_message("P2 LOST BY POISON!")
             game_exit = True
