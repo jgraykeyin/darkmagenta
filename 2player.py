@@ -129,16 +129,29 @@ resources = [mush1_tile,mush2_tile,mush3_tile,heart_tile]
 # Initialize P1 inventory
 inventory_font = pygame.font.Font(os.path.join(__location__,'PressStart2P-Regular.ttf'),16)
 
-def scorePoint(player):
+def scorePoint(player,points):
+    '''
+    Description: Add points to P1 or P2
+    Parameters:
+        player - "p1" or "p2"
+        points - amount of points to add
+    Returns: Nothing
+    '''
     global score_p1
     global score_p2
 
     if player == "p1":
-        score_p1 += 1
+        score_p1 += points
     elif player == "p2":
-        score_p2 += 1
+        score_p2 += points
 
 def generateMap():
+    '''
+    Descriptions: Generates a tiled map at the start of a round
+    Parameters: None
+    Returns:
+        List of tile numbers
+    '''
 
     # Create a full map of blank tiles
     tile_map = [[blank_tile for w in range(display_width)] for h in range(display_height)]
@@ -174,6 +187,12 @@ def generateMap():
     return tile_map
 
 def resetInventory():
+    '''
+    Description: Initializes the inventory for the beginning of a match
+    Parameters: None
+    Returns:
+        List of inventory items
+    '''
     inventory = {
         mush1_tile:0,
         mush2_tile:0,
@@ -184,6 +203,12 @@ def resetInventory():
 
 # Draw a crafting message onto the screen for a moment when players craft
 def craft_message(msg):
+    '''
+    Descriptions: Displays a message on the screen during gameplay
+    Parameters:
+        msg - Message that will be displayed as a string
+    Returns: Nothing
+    '''
     font = pygame.font.Font(os.path.join(__location__,'PressStart2P-Regular.ttf'), 32)
     text = font.render(msg,True,magenta,light_cyan)
     textRect = text.get_rect()
@@ -195,6 +220,12 @@ def craft_message(msg):
 
 # Spore magic is a craftable spell that turns most mushrooms into poison
 def spore_magic(tile_map):
+    '''
+    Description: Checks every mushroom on the board with a chance of changing it to a poison mushroom
+    Parameters:
+        tile_map - Tilemap to check, should be the game's current map
+    Returns: Nothing
+    '''
     for row in range(display_height):
         for col in range(display_width):
             # Chance of turning every mushroom into a poison mushroom
@@ -205,6 +236,11 @@ def spore_magic(tile_map):
 
 # Function to display the logo and prompt user to press enter to play
 def main_menu():
+    '''
+    Description: Main menu that will display a graphic and wait for the user to start the game
+    Parameters: None
+    Returns: Nothing
+    '''
     # Start the menu graphic at the bottom of the screen so we can scroll it upwards
     menu_height = 700
     menu_move = 0
@@ -247,6 +283,11 @@ def main_menu():
         clock.tick(60)
 
 def game_over():
+    '''
+    Description: End-game screen that displays the score and waits for the user to play again or quit the program
+    Parameters: None
+    Returns: Nothing
+    '''
     game_end_state = True
     
     # Start playing game-over music
@@ -267,6 +308,10 @@ def game_over():
                 if event.key == pygame.K_RETURN:
                     game_end_state = False
 
+                if event.key == pygame.K_q:
+                    pygame.quit()
+                    quit()
+
         gfont = pygame.font.Font(os.path.join(__location__,'PressStart2P-Regular.ttf'),24)
 
         game_over_title = gfont.render("Match Over!", True, dark_magenta, light_cyan)
@@ -280,13 +325,17 @@ def game_over():
         game_display.blit(p2_score, (w_center,380))
         game_display.blit(play_again, (w_center-180,440))
 
-
         pygame.display.update()
-
 
 
 # Setup the main game loop
 def game_loop():
+    '''
+    Description: The main gameplay loop that initializes many of our settings and loads the generated tilemap. 
+                 We then check for keyboard events to move the characters on the screen.
+    Parameters: None
+    Returns: Nothing
+    '''
     player_pos = [0,0]
     cat_pos = [(display_width*tile_size)-tile_size,(display_height*tile_size)-tile_size]
 
@@ -305,6 +354,8 @@ def game_loop():
     speed_count_p1 = 200
     speed_bonus_p2 = 0
     speed_count_p2 = 200
+    orbs_p1=0
+    orbs_p2=0
     p1_dmg = 0
     p2_dmg = 0
     game_exit = False
@@ -398,6 +449,7 @@ def game_loop():
                 elif event.key == pygame.K_1 and inventory[mush1_tile] >= 10 and current_tile == 7:
                     # Craft an exit piece 1 using 10 mushrooms
                     tile_map[0][1] = 11
+                    orbs_p1 += 1
                     inventory[mush1_tile] = inventory[mush1_tile] - 10
                     craft_sound.play()
                     craft_message("P1 CRAFTED PORTAL PIECE 1!")
@@ -410,6 +462,7 @@ def game_loop():
                 elif event.key == pygame.K_2 and inventory[mush2_tile] >= 10 and current_tile == 7:
                     # Craft an exit piece 1 using 10 mushrooms
                     tile_map[1][0] = 11
+                    orbs_p1 += 1
                     inventory[mush2_tile] = inventory[mush2_tile] - 10
                     craft_sound.play()
                     craft_message("P1 CRAFTED PORTAL PIECE 2!")
@@ -418,7 +471,7 @@ def game_loop():
                     craft_message("P1 CRAFTED SPORE MAGIC!")
                     inventory[mush3_tile] = inventory[mush3_tile] - 5
                     spore_magic(tile_map)
-                elif event.key == pygame.K_3 and inventory[mush3_tile] >= 10 and current_tile == 7:
+                elif event.key == pygame.K_3 and inventory[mush3_tile] >= 10 and current_tile == 7 and orbs_p1 >= 2:
                     # Craft an exit piece 1 using 10 mushrooms
                     tile_map[1][1] = 12
                     inventory[mush3_tile] = inventory[mush3_tile] - 10
@@ -473,6 +526,7 @@ def game_loop():
                     craft_message("P2 CRAFTED HEART!")
                 elif event.key == pygame.K_8 and inventory_cat[mush1_tile] >= 10 and current_cat_tile == 7:
                     # Craft an Exit Piece 1 using 10 mushrooms
+                    orbs_p2+=1
                     tile_map[6][7] = 11
                     inventory_cat[mush1_tile] = inventory_cat[mush1_tile] - 10
                     craft_sound.play()
@@ -485,6 +539,7 @@ def game_loop():
                     craft_message("P2 CRAFTED SPEED BONUS!")
                 elif event.key == pygame.K_9 and inventory_cat[mush2_tile] >= 10  and current_cat_tile == 7:
                     # Craft an exit piece 2 using 10 mushrooms
+                    orbs_p2+=1
                     tile_map[5][8] = 11
                     inventory_cat[mush2_tile] = inventory_cat[mush2_tile] - 10
                     craft_sound.play()
@@ -494,7 +549,7 @@ def game_loop():
                     craft_message("P2 CRAFTED SPORE MAGIC!")
                     inventory_cat[mush3_tile] = inventory_cat[mush3_tile] - 5
                     spore_magic(tile_map)
-                elif event.key == pygame.K_0 and inventory_cat[mush3_tile] >= 10 and current_cat_tile == 7:
+                elif event.key == pygame.K_0 and inventory_cat[mush3_tile] >= 10 and current_cat_tile == 7 and orbs_p2 >= 2:
                     # Craft an exit piece 3 using 10 mushrooms
                     tile_map[5][7] = 12
                     inventory_cat[mush3_tile] = inventory_cat[mush3_tile] - 10
@@ -533,8 +588,10 @@ def game_loop():
                 inventory_cat[mush2_tile] = 0
                 inventory_cat[mush3_tile] = 0
             elif current_tile == 12:
-                craft_message("P2 FOUND THE EXIT!")
-                game_exit == True
+                craft_message("P2 FOUND THE EXIT! +5 POINTS!")
+                scorePoint("p2",5)
+                game_exit = True
+                break
 
             # Player 1 pick-up mushroom if it's available on current tile
             py = math.floor(player_pos[1]/tile_size)
@@ -566,8 +623,10 @@ def game_loop():
                 inventory[mush2_tile] = 0
                 inventory[mush3_tile] = 0
             elif current_tile == 12:
-                craft_message("P1 FOUND THE EXIT!")
-                game_exit == True
+                craft_message("P1 FOUND THE EXIT! +5 POINTS!")
+                scorePoint("p1",5)
+                game_exit = True
+                break
 
             # If the p1 speed bonus is enabled, set a timer so that it deactivates after 200 ticks
             if speed_count_p1 < 200:
@@ -706,14 +765,14 @@ def game_loop():
         if inventory[heart_tile] < 1:
             craft_message("P1 LOST BY POISON!")
             game_exit = True
-            scorePoint("p2")
+            scorePoint("p2",1)
 
         # Check the cat's health, game over/reset if it's zero
         # TODO: Attach the end-game sequence here
         if inventory_cat[heart_tile] < 1:
             craft_message("P2 LOST BY POISON!")
             game_exit = True
-            scorePoint("p1")
+            scorePoint("p1",1)
 
 
 main_menu()
