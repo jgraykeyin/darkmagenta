@@ -1,5 +1,7 @@
 # Dark Magenta PyGame Challenge Project
 
+![Screenshot](https://github.com/jgraykeyin/darkmagenta/blob/main/images/screenshot.png)
+
 This is a local two-player game where both players compete to collect
 mushrooms that will be used to craft an exit-door to win the round.
 Players can also win a round if the opponent loses all their health
@@ -82,4 +84,4 @@ game_loop():
 Further extensions will be adding controller support for both players once hardware
 can be acquired for testing. 
 
-![Screenshot](https://github.com/jgraykeyin/darkmagenta/blob/main/images/screenshot.png)
+
