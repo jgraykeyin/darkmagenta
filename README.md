@@ -11,12 +11,12 @@ crafted. All crafting must be done at the 'Camp Fire' which players must
 battle for control.
 
 Crafting chart:
-Mushroom A x5: Heart (+1 HP)
-Mushroom A x10: Exit Orb
-Mushroom B x5: Speed Bonus (Speed x2 for 30 seconds)
-Mushroom B x10: Exit Orb
-Mushroom C x5: Spore Magic Spell (Turns most mushrooms into poison)
-Mushroom C x10: Exit Door
+* Mushroom A x5: Heart (+1 HP)
+* Mushroom A x10: Exit Orb
+* Mushroom B x5: Speed Bonus (Speed x2 for 30 seconds)
+* Mushroom B x10: Exit Orb
+* Mushroom C x5: Spore Magic Spell (Turns most mushrooms into poison)
+* Mushroom C x10: Exit Door
 
 When a player uses the 'Exit Door' they win the match and receive 5 points.
 When a player loses from poison (0 HP) their opponent receives 1 point. 
