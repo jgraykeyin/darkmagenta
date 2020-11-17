@@ -7,7 +7,7 @@
 # https://freemusicarchive.org/music/sawsquarenoise/
 # 
 # Sound effects from freesound.org
-# Graphics drawn using piskel.com
+# Graphics drawn using piskelapp.com
 
 import pygame
 import os
